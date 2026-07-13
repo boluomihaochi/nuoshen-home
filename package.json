@@ -1,0 +1,15 @@
+{
+  "name": "nuoshen-home",
+  "version": "0.1.0",
+  "description": "诺澍之家 — 共读与留言板",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "epub2": "^3.0.2"
+  }
+}
