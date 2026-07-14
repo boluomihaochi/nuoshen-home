@@ -446,11 +446,9 @@
   /* ── clawd 桌宠 ── */
   #clawd {
     position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom));
-    width: 72px; height: 60px; z-index: 90; cursor: pointer;
+    width: 70px; height: 63px; z-index: 90; cursor: pointer;
     image-rendering: pixelated; user-select: none;
-    transition: transform .18s;
   }
-  #clawd.hop { transform: translateY(-14px); }
   #clawd-say {
     position: fixed; right: 16px; bottom: calc(150px + env(safe-area-inset-bottom));
     z-index: 90; background: var(--paper); border: 1px solid var(--border);
@@ -495,7 +493,7 @@
 
 <div id="sel-pop" onclick="quoteFromSelection()">✎ 写批注</div>
 
-<canvas id="clawd" width="24" height="20" onclick="clawdPoke()"></canvas>
+<canvas id="clawd" width="20" height="18" onclick="clawdPoke()"></canvas>
 <div id="clawd-say"></div>
 
 <div id="shell">
@@ -1341,64 +1339,52 @@ async function importBook(input) {
 // ── clawd 桌宠（手绘像素小螃蟹）─────────────────────────────────────────────
 const clawdCv = document.getElementById("clawd");
 const clawdCx = clawdCv.getContext("2d");
-const CP = { O: "#e8875a", D: "#c9633a", W: "#fff8f0", B: "#2b2721", K: "#e8875a", Z: "#a49c8f" };
+// Anthropic 星芒橙
+const CP = { O: "#d97757", B: "#2b2721", Z: "#a49c8f" };
 
-// 24×20 像素画。O身体 D深色 W眼白 B瞳孔 K钳子 . 透明
-const CLAWD_BODY = [
-  "........................",
-  "........OOOOOOOO........",
-  "......OOOOOOOOOOOO......",
-  ".....OOOOOOOOOOOOOO.....",
-  "....OOOOOOOOOOOOOOOO....",
-  "....OOOOOOOOOOOOOOOO....",
-  "....OOOOOOOOOOOOOOOO....",
-  "....OOOOOOOOOOOOOOOO....",
-  ".....OODOOOOOOOODOO.....",
-  "......OOOOODDOOOOO......",
-  ".......OOOOOOOOOO.......",
-  "........................",
+// 15×15 星芒（Claude logo 的像素版），画在 20×18 画布上
+const CLAWD_STAR = [
+  ".......O.......",
+  ".O.....O.....O.",
+  "..O....O....O..",
+  "...O...O...O...",
+  "....O..O..O....",
+  ".....OOOOO.....",
+  "..OOOOOOOOOOO..",
+  "OOOOOOOOOOOOOOO",
+  "..OOOOOOOOOOO..",
+  ".....OOOOO.....",
+  "....O..O..O....",
+  "...O...O...O...",
+  "..O....O....O..",
+  ".O.....O.....O.",
+  ".......O.......",
 ];
 function clawdDraw(state) {
-  // state: {blink, rightUp, leftUp, sleep, bob}
   const cx = clawdCx;
-  cx.clearRect(0, 0, 24, 20);
-  const oy = 4 + (state.bob ? 1 : 0);
-  // 身体
-  CLAWD_BODY.forEach((row, y) => {
+  cx.clearRect(0, 0, 20, 18);
+  const oy = state.bob ? 3 : 2;
+  cx.fillStyle = CP.O;
+  CLAWD_STAR.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) {
-      const c = row[x];
-      if (c !== ".") { cx.fillStyle = CP[c]; cx.fillRect(x, y + oy - 4, 1, 1); }
+      if (row[x] === "O") cx.fillRect(x + 2, y + oy, 1, 1);
     }
   });
-  // 眼睛（在身体 y=当前oy+1~3 的位置）
-  const ey = oy + 1;
+  // 眼睛：中心块上两颗
+  cx.fillStyle = CP.B;
   if (state.sleep || state.blink) {
-    cx.fillStyle = CP.B;
-    cx.fillRect(8, ey + 2, 3, 1); cx.fillRect(14, ey + 2, 3, 1);
+    cx.fillRect(6, oy + 7, 2, 1); cx.fillRect(11, oy + 7, 2, 1);
   } else {
-    cx.fillStyle = CP.W;
-    cx.fillRect(8, ey, 3, 4); cx.fillRect(14, ey, 3, 4);
-    cx.fillStyle = CP.B;
-    cx.fillRect(9, ey + 1, 2, 2); cx.fillRect(15, ey + 1, 2, 2);
+    cx.fillRect(6, oy + 6, 2, 2); cx.fillRect(11, oy + 6, 2, 2);
   }
-  // 钳子
-  cx.fillStyle = CP.K;
-  if (state.leftUp) { cx.fillRect(1, oy - 3, 3, 3); cx.fillRect(2, oy, 2, 3); }
-  else { cx.fillRect(0, oy + 4, 3, 3); cx.fillRect(2, oy + 6, 2, 2); }
-  if (state.rightUp) { cx.fillRect(20, oy - 3, 3, 3); cx.fillRect(20, oy, 2, 3); }
-  else { cx.fillRect(21, oy + 4, 3, 3); cx.fillRect(20, oy + 6, 2, 2); }
-  // 腿
-  cx.fillStyle = CP.D;
-  const ly = oy + 8;
-  [6, 9, 14, 17].forEach(x => cx.fillRect(x, ly, 1, 2));
   // 睡觉的 z
   if (state.sleep) {
     cx.fillStyle = CP.Z;
-    cx.fillRect(19, 1, 3, 1); cx.fillRect(20, 2, 1, 1); cx.fillRect(19, 3, 3, 1);
+    cx.fillRect(16, 0, 3, 1); cx.fillRect(17, 1, 1, 1); cx.fillRect(16, 2, 3, 1);
   }
 }
 
-const clawdState = { blink: false, rightUp: false, leftUp: false, sleep: false, bob: false };
+const clawdState = { blink: false, sleep: false, bob: false };
 let clawdLastTouch = Date.now();
 
 setInterval(() => { clawdState.bob = !clawdState.bob; clawdDraw(clawdState); }, 700);
@@ -1408,9 +1394,11 @@ setInterval(() => {
   setTimeout(() => { clawdState.blink = false; clawdDraw(clawdState); }, 180);
 }, 3800 + Math.random() * 2000);
 setInterval(() => {
+  // 偶尔转一下（星芒的招手）
   if (clawdState.sleep) return;
-  clawdState.rightUp = true; clawdDraw(clawdState);
-  setTimeout(() => { clawdState.rightUp = false; clawdDraw(clawdState); }, 900);
+  clawdCv.style.transition = "transform .45s";
+  clawdCv.style.transform = "rotate(22deg)";
+  setTimeout(() => { clawdCv.style.transform = ""; }, 500);
 }, 9000 + Math.random() * 6000);
 setInterval(() => {
   // 2分钟没人理就睡着
@@ -1432,10 +1420,10 @@ const CLAWD_LINES = [
 function clawdPoke() {
   clawdLastTouch = Date.now();
   if (clawdState.sleep) { clawdState.sleep = false; clawdDraw(clawdState); return; }
-  const cv = document.getElementById("clawd");
-  cv.classList.add("hop");
-  clawdState.leftUp = clawdState.rightUp = true; clawdDraw(clawdState);
-  setTimeout(() => { cv.classList.remove("hop"); clawdState.leftUp = clawdState.rightUp = false; clawdDraw(clawdState); }, 400);
+  // 开心地转一整圈再跳一下
+  clawdCv.style.transition = "transform .55s cubic-bezier(.3,1.4,.5,1)";
+  clawdCv.style.transform = "rotate(360deg) translateY(-10px)";
+  setTimeout(() => { clawdCv.style.transform = ""; }, 600);
   const say = document.getElementById("clawd-say");
   say.textContent = CLAWD_LINES[Math.floor(Math.random() * CLAWD_LINES.length)];
   say.style.display = "block";
