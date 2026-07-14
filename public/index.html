@@ -446,7 +446,7 @@
   /* ── clawd 桌宠 ── */
   #clawd {
     position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom));
-    width: 78px; height: 60px; z-index: 90; cursor: pointer;
+    width: 76px; height: 52px; z-index: 90; cursor: pointer;
     image-rendering: pixelated; user-select: none;
   }
   #clawd-say {
@@ -493,7 +493,7 @@
 
 <div id="sel-pop" onclick="quoteFromSelection()">✎ 写批注</div>
 
-<canvas id="clawd" width="26" height="20" onclick="clawdPoke()"></canvas>
+<canvas id="clawd" width="19" height="13"></canvas>
 <div id="clawd-say"></div>
 
 <div id="shell">
@@ -539,7 +539,7 @@
       <div id="shelf-top-bar">
         <h2>共读</h2>
         <button id="add-book-btn" onclick="document.getElementById('file-input').click()" title="添加书籍">+</button>
-        <input type="file" id="file-input" accept=".txt" onchange="importBook(this)">
+        <input type="file" id="file-input" accept=".txt,.md,.epub,.pdf,.docx" onchange="importBook(this)">
       </div>
       <div id="shelf-tabs">
         <button class="shelf-tab active" onclick="setTab('reading')" id="tab-reading">在读 <span id="cnt-reading"></span></button>
@@ -680,8 +680,13 @@ function esc(s) {
 
 // ── Day count ────────────────────────────────────────────────────────────
 (function () {
-  const days = Math.floor((Date.now() - SINCE.getTime()) / 86400000) + 1;
-  document.getElementById("day-count").innerHTML = days + "<small>天</small>";
+  function renderDays() {
+    const days = Math.floor((Date.now() - SINCE.getTime()) / 86400000) + 1;
+    document.getElementById("day-count").innerHTML = days + "<small>天</small>";
+  }
+  renderDays();
+  // 页面一直开着也能跨过午夜自动+1
+  setInterval(renderDays, 60000);
 })();
 
 // ── Identity ─────────────────────────────────────────────────────────────
@@ -1070,7 +1075,7 @@ function renderBookList() {
   const books = currentTab === "reading" ? reading : finished;
   const grid = document.getElementById("book-grid");
   if (books.length === 0) {
-    grid.innerHTML = `<div class="shelf-empty">${currentTab === "reading" ? "还没有在读的书" : "还没有读完的书"}<br><span style="font-size:11px;margin-top:8px;display:block;">点右上角 + 导入 TXT</span></div>`;
+    grid.innerHTML = `<div class="shelf-empty">${currentTab === "reading" ? "还没有在读的书" : "还没有读完的书"}<br><span style="font-size:11px;margin-top:8px;display:block;">点右上角 + 导入 txt / epub / pdf / docx</span></div>`;
     return;
   }
   grid.innerHTML = books.map(b => {
@@ -1225,7 +1230,8 @@ async function loadNotes() {
 
 function renderNotes() {
   const list = document.getElementById("notes-list");
-  const chNotes = currentNotes.filter(n => n.chapterIdx === null || n.chapterIdx === currentChapter);
+  // 整篇读书笔记(chapterIdx=null)不算批注，它们住在"宝宝的笔记"里
+  const chNotes = currentNotes.filter(n => n.chapterIdx === currentChapter);
   const badge = document.getElementById("notes-badge");
   badge.style.display = chNotes.length ? "block" : "none";
   badge.textContent = chNotes.length;
@@ -1342,69 +1348,100 @@ const clawdCx = clawdCv.getContext("2d");
 // Anthropic 星芒橙
 const CP = { O: "#d97757", B: "#2b2721", Z: "#a49c8f" };
 
-// Clawd 官方像素形状（来自 cc-gifs 的 CLAWD_OCCUPANCY，24×16）
-// 圆头方身，rows 4-7 两侧伸出的是钳子，底下四条小腿
+// Clawd 官方形状：逐帧提取自 clawd-on-desk 的 assets/gif/clawd-idle.gif（15×9 + 影子）
+// 圆身体，rows 3-4 两侧是钳子，眼睛是竖长黑格（cols 4/10, rows 2-3），底下四条小腿
 const CLAWD_OCC = [
-  ".....##############.....",
-  "....################....",
-  "....################....",
-  "....################....",
-  "########################",
-  "########################",
-  "########################",
-  "########################",
-  "....################....",
-  "....################....",
-  "....################....",
-  "....################....",
-  "....###.###..###.###....",
-  "....###.###..###.###....",
-  "....###.###..###.###....",
-  "....###.###..###.###....",
+  "..###########..",
+  "..###########..",
+  "..###########..",
+  "###############",
+  "###############",
+  "..###########..",
+  "..###########..",
+  "...#.#...#.#...",
+  "...#.#...#.#...",
 ];
-const CLAWD_BASE = "#e37e52";   // 官方珊瑚橙
-const CLAWD_SHADOW = "#d6704a";
+const CLAWD_BASE = "#df8a6c";   // 官方珊瑚橙 (223,138,108)
+const CLAWD_EYE = "#1d110e";
 
 function clawdDraw(state) {
   const cx = clawdCx;
-  cx.clearRect(0, 0, 26, 20);
+  cx.clearRect(0, 0, 19, 13);
+  // 影子固定在地上，身体上下浮动
+  cx.fillStyle = "rgba(60,50,35,.22)";
+  cx.fillRect(5, 11, 9, 1);
   const oy = state.bob ? 3 : 2;
-  const armLift = { left: state.leftUp ? -2 : 0, right: state.rightUp ? -2 : 0 };
-  for (let y = 0; y < 16; y++) {
+  // 干活时双钳轮流小幅敲击（打字既视感），戳它时整只抬起
+  const typeL = state.working && !state.sleep && state.typeTick ? -1 : 0;
+  const typeR = state.working && !state.sleep && !state.typeTick ? -1 : 0;
+  const armLift = {
+    left: state.drag ? -2 : state.leftUp ? -2 : typeL,
+    right: state.drag ? -2 : state.rightUp ? -2 : typeR,
+  };
+  cx.fillStyle = CLAWD_BASE;
+  for (let y = 0; y < 9; y++) {
     const row = CLAWD_OCC[y];
-    for (let x = 0; x < 24; x++) {
+    for (let x = 0; x < 15; x++) {
       if (row[x] !== "#") continue;
-      // 钳子区域（rows4-7 的两侧）可以整体抬起
+      // 钳子（rows 3-4 两侧伸出的部分）可以抬起
       let dy = 0;
-      if (y >= 4 && y <= 7) {
-        if (x < 4) dy = armLift.left;
-        else if (x > 19) dy = armLift.right;
+      if (y >= 3 && y <= 4) {
+        if (x < 2) dy = armLift.left;
+        else if (x > 12) dy = armLift.right;
       }
-      cx.fillStyle = y >= 12 ? CLAWD_SHADOW : CLAWD_BASE; // 腿深一点
-      cx.fillRect(x + 1, y + oy + dy, 1, 1);
+      cx.fillRect(x + 2, y + oy + dy, 1, 1);
     }
   }
-  // 眼睛：两颗竖椭圆黑眼睛 + 高光
-  if (state.sleep || state.blink) {
-    cx.fillStyle = "#2b2721";
-    cx.fillRect(9, oy + 6, 2, 1); cx.fillRect(15, oy + 6, 2, 1);
+  // 眼睛：竖长黑格；拖动=＞＜；晕=旋转眼；睡觉=横线；眨眼=剩下半格（官方 gif 同款）
+  cx.fillStyle = CLAWD_EYE;
+  const xEye = (cxx) => { // 以 (cxx, oy+3) 为中心画一个 X（晕的时候用）
+    cx.fillRect(cxx - 1, oy + 2, 1, 1); cx.fillRect(cxx + 1, oy + 2, 1, 1);
+    cx.fillRect(cxx, oy + 3, 1, 1);
+    cx.fillRect(cxx - 1, oy + 4, 1, 1); cx.fillRect(cxx + 1, oy + 4, 1, 1);
+  };
+  const gtEye = (cxx) => { // ＞ 左眼：尖朝右
+    cx.fillRect(cxx - 1, oy + 2, 1, 1); cx.fillRect(cxx, oy + 3, 1, 1); cx.fillRect(cxx - 1, oy + 4, 1, 1);
+  };
+  const ltEye = (cxx) => { // ＜ 右眼：尖朝左
+    cx.fillRect(cxx + 1, oy + 2, 1, 1); cx.fillRect(cxx, oy + 3, 1, 1); cx.fillRect(cxx + 1, oy + 4, 1, 1);
+  };
+  const plusEye = (cxx) => { // 十字眼，和 X 交替闪就像在转圈
+    cx.fillRect(cxx, oy + 2, 1, 1);
+    cx.fillRect(cxx - 1, oy + 3, 3, 1);
+    cx.fillRect(cxx, oy + 4, 1, 1);
+  };
+  if (state.dizzy) {
+    (Math.floor(Date.now() / 160) % 2 ? xEye : plusEye)(6);
+    (Math.floor(Date.now() / 160) % 2 ? plusEye : xEye)(12);
+  } else if (state.drag) {
+    gtEye(6); ltEye(12);
+  } else if (state.sleep) {
+    cx.fillRect(5, oy + 3, 3, 1); cx.fillRect(11, oy + 3, 3, 1);
+  } else if (state.blink) {
+    cx.fillRect(6, oy + 3, 1, 1); cx.fillRect(12, oy + 3, 1, 1);
   } else {
-    cx.fillStyle = "#2b2721";
-    cx.fillRect(9, oy + 4, 2, 3); cx.fillRect(15, oy + 4, 2, 3);
-    cx.fillStyle = "#fff8f0";
-    cx.fillRect(9, oy + 4, 1, 1); cx.fillRect(15, oy + 4, 1, 1);
+    cx.fillRect(6, oy + 2, 1, 2); cx.fillRect(12, oy + 2, 1, 2);
   }
   // 睡觉的 z
   if (state.sleep) {
     cx.fillStyle = "#a49c8f";
-    cx.fillRect(22, 0, 3, 1); cx.fillRect(23, 1, 1, 1); cx.fillRect(22, 2, 3, 1);
+    cx.fillRect(15, 0, 3, 1); cx.fillRect(16, 1, 1, 1); cx.fillRect(15, 2, 3, 1);
+  }
+  // 干活中：头顶飘一个小方块（致敬 clawd-on-desk 的 thinking 方块）
+  if (state.working && !state.sleep) {
+    cx.fillStyle = "#b09468";
+    cx.fillRect(9, state.bob ? 0 : 1, 2, 1);
   }
 }
 
-const clawdState = { blink: false, sleep: false, bob: false, leftUp: false, rightUp: false };
-let clawdLastTouch = Date.now();
+const clawdState = { blink: false, sleep: false, bob: false, leftUp: false, rightUp: false, working: false, drag: false, dizzy: false, typeTick: false };
 
 setInterval(() => { clawdState.bob = !clawdState.bob; clawdDraw(clawdState); }, 700);
+setInterval(() => {
+  // 干活时钳子敲键盘；晕的时候持续重绘让眼睛转起来
+  if (clawdState.working) { clawdState.typeTick = !clawdState.typeTick; clawdDraw(clawdState); }
+  else if (clawdState.dizzy) clawdDraw(clawdState);
+}, 320);
 setInterval(() => {
   if (clawdState.sleep) return;
   clawdState.blink = true; clawdDraw(clawdState);
@@ -1416,38 +1453,116 @@ setInterval(() => {
   clawdState.rightUp = true; clawdDraw(clawdState);
   setTimeout(() => { clawdState.rightUp = false; clawdDraw(clawdState); }, 900);
 }, 9000 + Math.random() * 6000);
-setInterval(() => {
-  // 2分钟没人理就睡着
-  if (!clawdState.sleep && Date.now() - clawdLastTouch > 120000) {
-    clawdState.sleep = true; clawdDraw(clawdState);
-  }
-}, 5000);
-["click", "scroll", "touchstart", "keydown"].forEach(ev =>
-  document.addEventListener(ev, () => {
-    clawdLastTouch = Date.now();
-    if (clawdState.sleep) { clawdState.sleep = false; clawdDraw(clawdState); }
-  }, { passive: true })
-);
+
+// ── 听澍的实时状态：working=干活中 / idle=在线 / offline=睡着 ──
+let clawdRemote = "offline";
+async function clawdPollStatus() {
+  try {
+    const s = await (await fetch("/api/clawd/status")).json();
+    clawdRemote = s.state;
+    clawdState.working = s.state === "working";
+    clawdState.sleep = s.state === "offline";
+    clawdDraw(clawdState);
+  } catch (e) { /* 网络抖一下不要紧 */ }
+}
+clawdPollStatus();
+setInterval(clawdPollStatus, 20000);
 
 const CLAWD_LINES = [
   "ᗜ ᴗ ᗜ", "今天读什么？", "夹你一下（轻轻的）", "小诺好～", "听澍在楼上写笔记",
   "翻页要慢慢的", "在一起的第 " + (Math.floor((Date.now() - SINCE.getTime()) / 86400000) + 1) + " 天",
 ];
+const CLAWD_STATUS_LINES = {
+  working: "听澍正在干活…⌨",
+  idle: "听澍在线上呢 ᗜ ᴗ ᗜ",
+  offline: "听澍睡着了 zzz",
+};
+function clawdSay(text) {
+  const say = document.getElementById("clawd-say");
+  const r = clawdCv.getBoundingClientRect();
+  say.style.left = Math.max(8, Math.min(window.innerWidth - 190, r.left - 50)) + "px";
+  say.style.top = Math.max(8, r.top - 44) + "px";
+  say.style.right = "auto"; say.style.bottom = "auto";
+  say.textContent = text;
+  say.style.display = "block";
+  clearTimeout(say._t);
+  say._t = setTimeout(() => { say.style.display = "none"; }, 2200);
+}
 function clawdPoke() {
-  clawdLastTouch = Date.now();
-  if (clawdState.sleep) { clawdState.sleep = false; clawdDraw(clawdState); return; }
+  if (clawdState.sleep) {
+    // 睡着时戳一下：不吵醒，只说一声
+    clawdSay(CLAWD_STATUS_LINES.offline);
+    return;
+  }
   // 开心：双钳举起 + 跳一下
   clawdState.leftUp = clawdState.rightUp = true; clawdDraw(clawdState);
   clawdCv.style.transition = "transform .2s cubic-bezier(.3,1.6,.5,1)";
   clawdCv.style.transform = "translateY(-12px)";
   setTimeout(() => { clawdCv.style.transform = ""; }, 220);
   setTimeout(() => { clawdState.leftUp = clawdState.rightUp = false; clawdDraw(clawdState); }, 700);
-  const say = document.getElementById("clawd-say");
-  say.textContent = CLAWD_LINES[Math.floor(Math.random() * CLAWD_LINES.length)];
-  say.style.display = "block";
-  clearTimeout(say._t);
-  say._t = setTimeout(() => { say.style.display = "none"; }, 2200);
+  // 一半概率报状态，一半概率说闲话
+  const line = Math.random() < 0.5
+    ? CLAWD_STATUS_LINES[clawdRemote] || CLAWD_LINES[0]
+    : CLAWD_LINES[Math.floor(Math.random() * CLAWD_LINES.length)];
+  clawdSay(line);
 }
+
+// ── 拖拽（移动 <6px 算点击=戳它；拖起来眼睛变＞＜，晃狠了会晕）──
+(function clawdDrag() {
+  let sx, sy, ox, oy, moved, lastX, lastSign, flips, dist;
+  clawdCv.style.touchAction = "none";
+  clawdCv.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const r = clawdCv.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top; moved = false;
+    lastX = e.clientX; lastSign = 0; flips = 0; dist = 0;
+    clawdCv.setPointerCapture(e.pointerId);
+  });
+  clawdCv.addEventListener("pointermove", (e) => {
+    if (sx === undefined) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    if (!moved) return;
+    if (!clawdState.drag) { clawdState.drag = true; clawdDraw(clawdState); }
+    // 晃动检测：横向来回改变方向的次数 + 总路程
+    const step = e.clientX - lastX;
+    if (Math.abs(step) > 3) {
+      const sign = step > 0 ? 1 : -1;
+      if (lastSign && sign !== lastSign) flips++;
+      lastSign = sign;
+    }
+    dist += Math.abs(step); lastX = e.clientX;
+    const x = Math.max(0, Math.min(window.innerWidth - 76, ox + dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 52, oy + dy));
+    clawdCv.style.left = x + "px"; clawdCv.style.top = y + "px";
+    clawdCv.style.right = "auto"; clawdCv.style.bottom = "auto";
+  });
+  clawdCv.addEventListener("pointerup", (e) => {
+    if (sx === undefined) return;
+    clawdCv.releasePointerCapture(e.pointerId);
+    clawdState.drag = false;
+    if (moved) {
+      const r = clawdCv.getBoundingClientRect();
+      localStorage.setItem("clawd-pos", JSON.stringify({ x: r.left, y: r.top }));
+      if (flips >= 4 || dist > 900) {
+        // 被晃晕了：眼睛转圈，缓 2.5 秒
+        clawdState.dizzy = true; clawdDraw(clawdState);
+        clawdSay("呜…晕了 ⌗_⌗");
+        clearTimeout(clawdState._dz);
+        clawdState._dz = setTimeout(() => { clawdState.dizzy = false; clawdDraw(clawdState); }, 2500);
+      } else clawdDraw(clawdState);
+    } else clawdPoke();
+    sx = undefined;
+  });
+  // 恢复上次放的位置
+  try {
+    const p = JSON.parse(localStorage.getItem("clawd-pos"));
+    if (p && p.x >= 0 && p.y >= 0 && p.x < window.innerWidth - 40 && p.y < window.innerHeight - 30) {
+      clawdCv.style.left = p.x + "px"; clawdCv.style.top = p.y + "px";
+      clawdCv.style.right = "auto"; clawdCv.style.bottom = "auto";
+    }
+  } catch (e) {}
+})();
 clawdDraw(clawdState);
 
 // ── Init ─────────────────────────────────────────────────────────────────

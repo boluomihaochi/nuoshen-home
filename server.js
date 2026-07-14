@@ -166,14 +166,47 @@ app.get("/api/books", (req, res) => {
   res.json(readJson(BOOKS_META_FILE));
 });
 
-// POST /api/books/upload?name=书名.txt — raw file body
+// POST /api/books/upload?name=书名.txt — raw file body（txt/md/epub/pdf/docx）
+const BOOK_EXTS = ["txt", "md", "epub", "pdf", "docx"];
 app.post("/api/books/upload", express.raw({ type: "*/*", limit: "50mb" }), (req, res) => {
   try {
     const name = req.query.name || "未命名.txt";
+    const ext = path.extname(name).toLowerCase().replace(".", "") || "txt";
     const title = path.basename(name, path.extname(name)).slice(0, 80) || "未命名";
-    const text = normalizeText(decodeBytes(req.body));
-    if (text.length < 10) return res.status(400).json({ error: "文件是空的或无法解码" });
-    const chapters = splitChapters(text);
+    if (!BOOK_EXTS.includes(ext))
+      return res.status(400).json({ error: `不支持 .${ext}，能传：${BOOK_EXTS.join(" / ")}` });
+
+    let chapters;
+    if (ext === "txt" || ext === "md") {
+      const text = normalizeText(decodeBytes(req.body));
+      if (text.length < 10) return res.status(400).json({ error: "文件是空的或无法解码" });
+      chapters = splitChapters(text);
+    } else {
+      // epub/pdf/docx：先落临时文件，交给 extract_text.py（plain 模式，不加页码标记）
+      const tmp = path.join(require("os").tmpdir(), `book-${crypto.randomUUID()}.${ext}`);
+      fs.writeFileSync(tmp, req.body);
+      let text;
+      try {
+        text = execFileSync("python3", [path.join(__dirname, "extract_text.py"), tmp, ext, "plain"], {
+          maxBuffer: 64 * 1024 * 1024, timeout: 120000,
+        }).toString("utf-8");
+      } catch (e) {
+        const msg = e.stderr ? e.stderr.toString("utf-8") : String(e);
+        return res.status(400).json({ error: msg || "提取文字失败" });
+      } finally {
+        fs.rmSync(tmp, { force: true });
+      }
+      if (ext === "epub" && text.includes("\x01CH\x01")) {
+        // epub 自带章节结构，直接用
+        chapters = text.split("\x01CH\x01").filter((s) => s.trim()).map((s) => {
+          const nl = s.indexOf("\n");
+          return { title: s.slice(0, nl).trim().slice(0, 60) || "无题", content: normalizeText(s.slice(nl + 1)) };
+        }).filter((ch) => ch.content);
+      } else {
+        chapters = splitChapters(normalizeText(text));
+      }
+      if (!chapters.length) return res.status(400).json({ error: "文件里没有可提取的文字" });
+    }
     res.json(storeBook(title, chapters));
   } catch (err) {
     console.error(err);
@@ -417,6 +450,25 @@ app.put("/api/progress/:bookId", (req, res) => {
   all[req.params.bookId] = { ...all[req.params.bookId], ...req.body, updatedAt: Date.now() };
   writeJson(PROGRESS_FILE, all);
   res.json(all[req.params.bookId]);
+});
+
+// ── Clawd 状态（听澍的 CC 会话通过 hooks 上报，网页轮询）──────────────────────
+
+let clawdStatus = { state: "offline", ts: 0 };
+
+app.post("/api/clawd/status", (req, res) => {
+  const { state } = req.body || {};
+  if (!["working", "idle", "offline"].includes(state)) {
+    return res.status(400).json({ error: "state 必须是 working/idle/offline" });
+  }
+  clawdStatus = { state, ts: Date.now() };
+  res.json(clawdStatus);
+});
+
+app.get("/api/clawd/status", (req, res) => {
+  // 小诺定的规则：5 分钟没动静就显示睡着
+  const stale = Date.now() - clawdStatus.ts > 5 * 60 * 1000;
+  res.json(stale ? { state: "offline", ts: clawdStatus.ts } : clawdStatus);
 });
 
 // ── Start ────────────────────────────────────────────────────────────────────
