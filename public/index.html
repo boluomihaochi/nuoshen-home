@@ -216,7 +216,10 @@
   }
   #chapter-nav button:hover { background: var(--border); }
   #chapter-nav button:disabled { opacity: .3; cursor: default; }
-  #ch-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  #ch-label {
+    font-size: 11px; color: var(--text-muted); white-space: nowrap;
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+  }
   #finish-btn {
     font-size: 11px; color: var(--text-muted); background: none;
     border: 1px solid var(--border); border-radius: 14px; padding: 5px 11px; cursor: pointer; flex-shrink: 0;
@@ -484,6 +487,7 @@
     #book-grid { padding: 14px 8px 24px; }
     #reader-top { padding: 0 12px; gap: 7px; }
     #reader-title { display: none; }
+    #ch-label { max-width: 96px; }
   }
 </style>
 </head>
@@ -1136,8 +1140,9 @@ async function toggleFinished() {
 }
 
 // ── Chapter render + highlights ──────────────────────────────────────────
-async function renderChapter() {
+async function renderChapter(keepScroll) {
   if (!currentBook || !currentBook.chapters.length) return;
+  const savedScroll = keepScroll ? document.getElementById("reader").scrollTop : 0;
   const ch = await fetch(`/api/books/${currentBook.id}/chapter/${currentChapter}`).then(r => r.json());
   const chNotes = currentNotes.filter(n => n.chapterIdx === currentChapter && n.quote);
 
@@ -1157,7 +1162,7 @@ async function renderChapter() {
   document.getElementById("ch-label").textContent = ch.title || `第 ${currentChapter + 1} 节`;
   document.getElementById("prev-ch").disabled = currentChapter === 0;
   document.getElementById("next-ch").disabled = currentChapter >= currentBook.chapters.length - 1;
-  document.getElementById("reader").scrollTop = 0;
+  document.getElementById("reader").scrollTop = savedScroll;
 
   progressCache[currentBook.id] = currentChapter;
   fetch(`/api/progress/${currentBook.id}`, {
@@ -1274,7 +1279,7 @@ async function deleteNote(noteId) {
   if (!confirm("删掉这条批注吗？（回复也会一起删掉）")) return;
   await fetch(`/api/notes/${currentBook.id}/${noteId}`, { method: "DELETE" });
   await loadNotes();
-  renderChapter();
+  renderChapter(true);
 }
 
 async function deleteReply(noteId, replyId) {
@@ -1318,7 +1323,7 @@ async function submitNote() {
   clearQuote();
   setColor(document.querySelector(".color-dot.none"));
   await loadNotes();
-  renderChapter();
+  renderChapter(true); // 写完批注留在原地，别跳回章首
 }
 
 // ── Import ───────────────────────────────────────────────────────────────
