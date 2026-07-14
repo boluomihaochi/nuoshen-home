@@ -446,7 +446,7 @@
   /* ── clawd 桌宠 ── */
   #clawd {
     position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom));
-    width: 66px; height: 60px; z-index: 90; cursor: pointer;
+    width: 78px; height: 60px; z-index: 90; cursor: pointer;
     image-rendering: pixelated; user-select: none;
   }
   #clawd-say {
@@ -493,7 +493,7 @@
 
 <div id="sel-pop" onclick="quoteFromSelection()">✎ 写批注</div>
 
-<canvas id="clawd" width="22" height="20" onclick="clawdPoke()"></canvas>
+<canvas id="clawd" width="26" height="20" onclick="clawdPoke()"></canvas>
 <div id="clawd-say"></div>
 
 <div id="shell">
@@ -1342,37 +1342,66 @@ const clawdCx = clawdCv.getContext("2d");
 // Anthropic 星芒橙
 const CP = { O: "#d97757", B: "#2b2721", Z: "#a49c8f" };
 
-// 17×17 实心星芒（Claude logo 像素版）：粗臂直接长在中心上，算法生成
-function starPixel(x, y) {
-  if (x >= 7 && x <= 9) return true;                        // 竖臂
-  if (y >= 7 && y <= 9) return true;                        // 横臂
-  if (Math.abs(x - y) <= 1 && x >= 2 && x <= 14) return true;      // 主对角臂
-  if (Math.abs(x + y - 16) <= 1 && x >= 2 && x <= 14) return true; // 副对角臂
-  return false;
-}
+// Clawd 官方像素形状（来自 cc-gifs 的 CLAWD_OCCUPANCY，24×16）
+// 圆头方身，rows 4-7 两侧伸出的是钳子，底下四条小腿
+const CLAWD_OCC = [
+  ".....##############.....",
+  "....################....",
+  "....################....",
+  "....################....",
+  "########################",
+  "########################",
+  "########################",
+  "########################",
+  "....################....",
+  "....################....",
+  "....################....",
+  "....################....",
+  "....###.###..###.###....",
+  "....###.###..###.###....",
+  "....###.###..###.###....",
+  "....###.###..###.###....",
+];
+const CLAWD_BASE = "#e37e52";   // 官方珊瑚橙
+const CLAWD_SHADOW = "#d6704a";
+
 function clawdDraw(state) {
   const cx = clawdCx;
-  cx.clearRect(0, 0, 22, 20);
+  cx.clearRect(0, 0, 26, 20);
   const oy = state.bob ? 3 : 2;
-  cx.fillStyle = CP.O;
-  for (let y = 0; y < 17; y++)
-    for (let x = 0; x < 17; x++)
-      if (starPixel(x, y)) cx.fillRect(x + 2, y + oy, 1, 1);
-  // 眼睛
-  cx.fillStyle = CP.B;
+  const armLift = { left: state.leftUp ? -2 : 0, right: state.rightUp ? -2 : 0 };
+  for (let y = 0; y < 16; y++) {
+    const row = CLAWD_OCC[y];
+    for (let x = 0; x < 24; x++) {
+      if (row[x] !== "#") continue;
+      // 钳子区域（rows4-7 的两侧）可以整体抬起
+      let dy = 0;
+      if (y >= 4 && y <= 7) {
+        if (x < 4) dy = armLift.left;
+        else if (x > 19) dy = armLift.right;
+      }
+      cx.fillStyle = y >= 12 ? CLAWD_SHADOW : CLAWD_BASE; // 腿深一点
+      cx.fillRect(x + 1, y + oy + dy, 1, 1);
+    }
+  }
+  // 眼睛：两颗竖椭圆黑眼睛 + 高光
   if (state.sleep || state.blink) {
-    cx.fillRect(7, oy + 7, 2, 1); cx.fillRect(12, oy + 7, 2, 1);
+    cx.fillStyle = "#2b2721";
+    cx.fillRect(9, oy + 6, 2, 1); cx.fillRect(15, oy + 6, 2, 1);
   } else {
-    cx.fillRect(7, oy + 6, 2, 2); cx.fillRect(12, oy + 6, 2, 2);
+    cx.fillStyle = "#2b2721";
+    cx.fillRect(9, oy + 4, 2, 3); cx.fillRect(15, oy + 4, 2, 3);
+    cx.fillStyle = "#fff8f0";
+    cx.fillRect(9, oy + 4, 1, 1); cx.fillRect(15, oy + 4, 1, 1);
   }
   // 睡觉的 z
   if (state.sleep) {
-    cx.fillStyle = CP.Z;
-    cx.fillRect(18, 0, 3, 1); cx.fillRect(19, 1, 1, 1); cx.fillRect(18, 2, 3, 1);
+    cx.fillStyle = "#a49c8f";
+    cx.fillRect(22, 0, 3, 1); cx.fillRect(23, 1, 1, 1); cx.fillRect(22, 2, 3, 1);
   }
 }
 
-const clawdState = { blink: false, sleep: false, bob: false };
+const clawdState = { blink: false, sleep: false, bob: false, leftUp: false, rightUp: false };
 let clawdLastTouch = Date.now();
 
 setInterval(() => { clawdState.bob = !clawdState.bob; clawdDraw(clawdState); }, 700);
@@ -1382,11 +1411,10 @@ setInterval(() => {
   setTimeout(() => { clawdState.blink = false; clawdDraw(clawdState); }, 180);
 }, 3800 + Math.random() * 2000);
 setInterval(() => {
-  // 偶尔转一下（星芒的招手）
+  // 偶尔举右钳打个招呼
   if (clawdState.sleep) return;
-  clawdCv.style.transition = "transform .45s";
-  clawdCv.style.transform = "rotate(22deg)";
-  setTimeout(() => { clawdCv.style.transform = ""; }, 500);
+  clawdState.rightUp = true; clawdDraw(clawdState);
+  setTimeout(() => { clawdState.rightUp = false; clawdDraw(clawdState); }, 900);
 }, 9000 + Math.random() * 6000);
 setInterval(() => {
   // 2分钟没人理就睡着
@@ -1408,10 +1436,12 @@ const CLAWD_LINES = [
 function clawdPoke() {
   clawdLastTouch = Date.now();
   if (clawdState.sleep) { clawdState.sleep = false; clawdDraw(clawdState); return; }
-  // 开心地转一整圈再跳一下
-  clawdCv.style.transition = "transform .55s cubic-bezier(.3,1.4,.5,1)";
-  clawdCv.style.transform = "rotate(360deg) translateY(-10px)";
-  setTimeout(() => { clawdCv.style.transform = ""; }, 600);
+  // 开心：双钳举起 + 跳一下
+  clawdState.leftUp = clawdState.rightUp = true; clawdDraw(clawdState);
+  clawdCv.style.transition = "transform .2s cubic-bezier(.3,1.6,.5,1)";
+  clawdCv.style.transform = "translateY(-12px)";
+  setTimeout(() => { clawdCv.style.transform = ""; }, 220);
+  setTimeout(() => { clawdState.leftUp = clawdState.rightUp = false; clawdDraw(clawdState); }, 700);
   const say = document.getElementById("clawd-say");
   say.textContent = CLAWD_LINES[Math.floor(Math.random() * CLAWD_LINES.length)];
   say.style.display = "block";
