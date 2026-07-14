@@ -485,9 +485,12 @@
     #shelf-top-bar { padding: 22px 18px 0; }
     #shelf-tabs { margin: 16px 18px 0; }
     #book-grid { padding: 14px 8px 24px; }
-    #reader-top { padding: 0 12px; gap: 7px; }
+    #reader-top { padding: 0 10px; gap: 5px; justify-content: space-between; }
     #reader-title { display: none; }
-    #ch-label { max-width: 96px; }
+    /* 手机太窄：章节名不显示（正文开头就有），只留翻页箭头 */
+    #ch-label { display: none; }
+    #chapter-nav button { padding: 4px 10px; }
+    #finish-btn, #notes-toggle { padding: 5px 9px; white-space: nowrap; }
   }
 </style>
 </head>
