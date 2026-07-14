@@ -2,467 +2,1306 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>诺澍之家</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>小楼</title>
 <style>
   :root {
-    --bg: #f8f7f4;
-    --sidebar-bg: #f0ede8;
-    --border: #e5e2dc;
-    --text: #1a1a1a;
-    --text-muted: #888;
-    --accent: #d4a373;
-    --xiao-nuo: #7c9e8a;
-    --ting-shu: #8a7c9e;
-    --radius: 10px;
-    --sidebar-w: 220px;
+    --bg: #f6f3ed;
+    --paper: #faf8f3;
+    --nav-bg: #f1ede5;
+    --border: #e5e0d5;
+    --hairline: #eae5da;
+    --text: #2b2721;
+    --text-soft: #6b645a;
+    --text-muted: #a49c8f;
+    --accent: #b09468;
+    --xiao-nuo: #6a9478;
+    --ting-shu: #7a6e96;
+    --nav-w: 248px;
+    --serif: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    --sans: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    overflow: hidden;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: var(--sans); background: var(--bg); color: var(--text); }
+
+  #shell { display: flex; height: 100dvh; overflow: hidden; }
+
+  #overlay { display:none; position:fixed; inset:0; background:rgba(30,25,18,.28); z-index:100; }
+  #overlay.show { display:block; }
 
   /* ── Sidebar ── */
-  #sidebar {
-    width: var(--sidebar-w);
-    background: var(--sidebar-bg);
+  #nav {
+    width: var(--nav-w); background: var(--nav-bg);
     border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 24px 0;
-    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    flex-shrink: 0; z-index: 110; overflow-y: auto;
+    transition: transform .28s ease;
   }
-  #sidebar-header {
-    padding: 0 20px 20px;
-    border-bottom: 1px solid var(--border);
+  #nav-profile { padding: 44px 20px 30px; text-align: center; }
+  #avatars { display: flex; justify-content: center; margin-bottom: 16px; }
+  .avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--paper); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 26px; color: var(--text-soft);
+    box-shadow: 0 2px 10px rgba(60,50,35,.07);
+    background-size: cover; background-position: center;
+    cursor: pointer; overflow: hidden;
   }
-  #sidebar-header h1 {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--text);
+  .avatar.has-img { color: transparent; }
+  .avatar + .avatar { margin-left: -14px; }
+  .avatar.ts { color: var(--ting-shu); z-index: 2; }
+  .avatar.xn { color: var(--xiao-nuo); z-index: 1; }
+  #couple-name {
+    font-family: var(--serif); font-style: italic; font-weight: 700;
+    font-size: 19px; letter-spacing: .04em; margin-bottom: 18px;
   }
-  #sidebar-header p {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 3px;
+  #together-label { font-size: 11px; color: var(--text-muted); letter-spacing: .5em; margin-bottom: 8px; text-indent: .5em; }
+  #day-count { font-family: var(--serif); font-size: 46px; font-weight: 800; line-height: 1; }
+  #day-count small { font-family: var(--sans); font-size: 14px; font-weight: 500; margin-left: 3px; color: var(--text); }
+  #since { font-size: 10px; color: var(--text-muted); letter-spacing: .3em; margin-top: 10px; }
+
+  #nav-items { flex: 1; padding: 6px 0 8px; }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 17px 26px;
+    font-family: var(--serif); font-size: 16px; letter-spacing: .02em;
+    color: var(--text); background: none; border: none;
+    border-top: 1px solid var(--hairline);
+    cursor: pointer; text-align: left; transition: background .12s;
   }
-  #book-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px 0;
+  .nav-item:last-child { border-bottom: 1px solid var(--hairline); }
+  .nav-item:hover { background: rgba(0,0,0,.03); }
+  .nav-item.active { color: var(--text); font-weight: 700; }
+  .nav-item.disabled { color: var(--text-muted); cursor: default; }
+  .nav-item.disabled:hover { background: none; }
+  .nav-tag {
+    font-family: var(--sans); font-size: 10px; color: var(--text-muted);
+    background: rgba(0,0,0,.045); border-radius: 10px; padding: 3px 9px;
   }
-  .book-item {
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 0;
-    transition: background 0.15s;
-    font-size: 13px;
-    line-height: 1.4;
-    border-left: 3px solid transparent;
+
+  /* ── Bottom bar (共读内) ── */
+  #bottom-bar {
+    display: flex; border-top: 1px solid var(--border); background: var(--nav-bg);
+    flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom);
   }
-  .book-item:hover { background: rgba(0,0,0,0.04); }
-  .book-item.active {
-    background: rgba(0,0,0,0.06);
-    border-left-color: var(--accent);
+  .bb-item {
+    flex: 1; padding: 12px 0 13px; background: none; border: none; cursor: pointer;
+    font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column;
+    align-items: center; gap: 3px; transition: color .12s;
   }
-  .book-item .book-title { font-weight: 500; color: var(--text); }
-  .book-item .book-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  #upload-area {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
+  .bb-item .bb-icon { font-size: 17px; line-height: 1; }
+  .bb-item.active { color: var(--text); font-weight: 600; }
+  #bb-tsnotes.active { color: var(--ting-shu); }
+
+  /* ── 宝宝的笔记 view ── */
+  #view-tsnotes { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-tsnotes.show { display: flex; }
+  #tsn-top { padding: 30px 34px 0; flex-shrink: 0; }
+  #tsn-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #tsn-top p { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  #tsn-list { flex: 1; overflow-y: auto; padding: 18px 26px 30px; }
+  .tsn-book-title {
+    font-family: var(--serif); font-size: 14px; font-weight: 700; color: var(--text-soft);
+    margin: 18px 8px 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline);
   }
-  #upload-btn {
-    width: 100%;
-    padding: 8px;
-    background: transparent;
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
+  .tsn-card {
+    background: var(--paper); border: 1px solid var(--border); border-radius: 12px;
+    padding: 15px 17px; margin-bottom: 12px; font-size: 13.5px;
   }
-  #upload-btn:hover { border-color: var(--accent); color: var(--accent); }
-  #file-input { display: none; }
+  .tsn-content { line-height: 1.85; white-space: pre-wrap; font-family: var(--serif); }
+  .tsn-time { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+
+  /* ── Collection view ── */
+  #view-collection { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-collection.show { display: flex; }
+  #coll-top { padding: 30px 34px 0; flex-shrink: 0; }
+  #coll-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #coll-books { display: flex; gap: 8px; overflow-x: auto; padding: 16px 34px 4px; flex-shrink: 0; }
+  .coll-book-chip {
+    border: 1px solid var(--border); background: var(--paper); border-radius: 16px;
+    padding: 6px 14px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .coll-book-chip.active { background: var(--text); border-color: var(--text); color: var(--paper); }
+  #coll-list { flex: 1; overflow-y: auto; padding: 14px 26px 30px; }
+  .coll-ch-title {
+    font-family: var(--serif); font-size: 13px; font-weight: 700; color: var(--text-soft);
+    margin: 16px 8px 8px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline);
+  }
+  .coll-empty { text-align: center; padding: 70px 20px; color: var(--text-muted); font-size: 13px; font-family: var(--serif); }
 
   /* ── Main ── */
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #main-header {
-    padding: 20px 40px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 64px;
-  }
-  #book-title-display {
-    font-size: 16px;
-    font-weight: 600;
-    flex: 1;
-  }
-  #chapter-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-  #chapter-nav button {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 10px;
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--text);
-    transition: background 0.1s;
-  }
-  #chapter-nav button:hover { background: var(--border); }
-  #chapter-nav button:disabled { opacity: 0.3; cursor: default; }
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
-  #content-area {
-    flex: 1;
-    display: flex;
+  #mobile-bar {
+    display: none; height: 50px; padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center; gap: 12px; background: var(--bg); flex-shrink: 0;
+  }
+  #hamburger { background:none; border:none; cursor:pointer; color:var(--text); display:flex; padding:4px; }
+  #mobile-title { font-family: var(--serif); font-size: 16px; font-weight: 700; flex: 1; }
+
+  /* ── Shelf ── */
+  #view-shelf { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #shelf-top-bar {
+    padding: 30px 34px 0; flex-shrink: 0;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  #shelf-top-bar h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #add-book-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--text); color: var(--paper); border: none;
+    font-size: 18px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #add-book-btn:hover { opacity: .78; }
+  #file-input { display: none; }
+
+  #shelf-tabs { display: flex; margin: 20px 34px 0; border-bottom: 1px solid var(--border); }
+  .shelf-tab {
+    padding: 9px 0; margin-right: 28px; font-size: 13px;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 2px solid transparent; cursor: pointer;
+    margin-bottom: -1px; transition: color .15s, border-color .15s;
+  }
+  .shelf-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+
+  #book-grid { flex: 1; overflow-y: auto; padding: 20px 26px 30px; }
+  .book-card {
+    display: flex; gap: 16px; padding: 16px 12px;
+    border-radius: 12px; cursor: pointer; transition: background .12s;
+  }
+  .book-card:hover { background: rgba(0,0,0,.035); }
+  .book-cover {
+    width: 58px; height: 78px; border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: flex-end; padding: 7px;
+    font-family: var(--serif); font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,.92); line-height: 1.25;
+    box-shadow: 2px 3px 10px rgba(50,40,25,.22);
     overflow: hidden;
   }
+  .book-info { flex: 1; min-width: 0; padding-top: 2px; }
+  .book-info-title { font-family: var(--serif); font-size: 16px; font-weight: 700; }
+  .book-info-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .book-progress-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .progress-bar { flex: 1; max-width: 200px; height: 3px; background: rgba(0,0,0,.09); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .progress-pct { font-size: 10px; color: var(--text-muted); }
+  .open-btn {
+    margin-top: 10px; font-size: 12px; color: var(--text);
+    background: none; border: 1px solid var(--text); border-radius: 15px;
+    padding: 5px 14px; cursor: pointer; transition: all .12s;
+  }
+  .open-btn:hover { background: var(--text); color: var(--paper); }
+  .shelf-empty { text-align: center; padding: 70px 20px; color: var(--text-muted); font-size: 13px; font-family: var(--serif); }
 
   /* ── Reader ── */
+  #view-reader { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-reader.show { display: flex; }
+  #reader-top {
+    height: 54px; padding: 0 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg);
+  }
+  #back-btn {
+    background: none; border: none; cursor: pointer; font-size: 13px;
+    color: var(--text-muted); display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+  }
+  #back-btn:hover { color: var(--text); }
+  #reader-title { flex: 1; font-family: var(--serif); font-size: 15px; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #chapter-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  #chapter-nav button {
+    background: transparent; border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 12px; cursor: pointer; font-size: 14px; color: var(--text); line-height: 1;
+  }
+  #chapter-nav button:hover { background: var(--border); }
+  #chapter-nav button:disabled { opacity: .3; cursor: default; }
+  #ch-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  #finish-btn {
+    font-size: 11px; color: var(--text-muted); background: none;
+    border: 1px solid var(--border); border-radius: 14px; padding: 5px 11px; cursor: pointer; flex-shrink: 0;
+  }
+  #finish-btn.finished { color: var(--xiao-nuo); border-color: var(--xiao-nuo); }
+  #notes-toggle {
+    display: none; background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 5px 11px; font-size: 11px; color: var(--text-muted); cursor: pointer; position: relative;
+  }
+  #notes-badge {
+    position: absolute; top: -5px; right: -5px; min-width: 15px; height: 15px;
+    background: var(--accent); color: #fff; border-radius: 8px;
+    font-size: 9px; line-height: 15px; padding: 0 4px; display: none;
+  }
+
+  #reader-content { flex: 1; display: flex; overflow: hidden; }
   #reader {
-    flex: 1;
-    overflow-y: auto;
-    padding: 48px 64px;
-    max-width: 700px;
-    line-height: 1.9;
-    font-size: 15px;
-    color: var(--text);
+    flex: 1; overflow-y: auto; padding: 46px 64px 80px;
+    font-family: var(--serif); line-height: 2.05; font-size: 16px; min-width: 0;
+    background: var(--paper);
+    transition: background .25s, color .25s;
   }
-  #reader p { margin-bottom: 1.2em; }
-  #reader .empty-state {
-    text-align: center;
-    padding: 120px 40px;
-    color: var(--text-muted);
+  #reader p { margin-bottom: 1.15em; }
+
+  /* reading themes */
+  #theme-btn {
+    background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 4px 10px; font-size: 13px; cursor: pointer; flex-shrink: 0; line-height: 1.2;
   }
-  #reader .empty-state .big { font-size: 36px; margin-bottom: 12px; }
-  #reader .empty-state p { font-size: 14px; }
+  #view-reader.theme-green #reader { background: #cde5cf; color: #2b352d; }
+  #view-reader.theme-green #reader-top { background: #c2dcc5; border-color: #b0ccb4; }
+  #view-reader.theme-dark #reader { background: #17171a; color: #b9b6b0; }
+  #view-reader.theme-dark #reader-top { background: #1f1f23; border-color: #2e2e33; }
+  #view-reader.theme-dark #reader-top button,
+  #view-reader.theme-dark #back-btn, #view-reader.theme-dark #ch-label,
+  #view-reader.theme-dark #reader-title { color: #b9b6b0; border-color: #3a3a40; }
+  #view-reader.theme-dark mark.hl {
+    background: linear-gradient(transparent 55%, rgba(200,175,130,.42) 55%);
+  }
+  #view-reader.theme-dark mark.hl.xn { background: linear-gradient(transparent 55%, rgba(126,180,144,.45) 55%); }
+  #view-reader.theme-dark mark.hl.ts { background: linear-gradient(transparent 55%, rgba(150,136,190,.48) 55%); }
+  mark.hl {
+    background: linear-gradient(transparent 55%, rgba(176,148,104,.34) 55%);
+    color: inherit; cursor: pointer; border-radius: 2px;
+    padding: 0 1px;
+  }
+  mark.hl.xn { background: linear-gradient(transparent 55%, rgba(106,148,120,.32) 55%); }
+  mark.hl.ts { background: linear-gradient(transparent 55%, rgba(122,110,150,.32) 55%); }
+
+  /* selection popover — desktop: floats above selection; mobile: fixed bottom pill */
+  #sel-pop {
+    position: fixed; z-index: 130; display: none;
+    background: var(--text); color: var(--paper);
+    border-radius: 18px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+  #sel-pop::after {
+    content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--text); border-bottom: none;
+  }
+  #sel-pop.bottom-pill {
+    left: 50% !important; top: auto !important;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    padding: 11px 26px; font-size: 14px; border-radius: 24px;
+  }
+  #sel-pop.bottom-pill::after { display: none; }
 
   /* ── Notes panel ── */
   #notes-panel {
-    width: 300px;
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
+    width: 300px; border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden; background: var(--bg); flex-shrink: 0;
   }
   #notes-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 15px 18px; border-bottom: 1px solid var(--border);
+    font-family: var(--serif); font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
   }
-  #notes-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-  }
+  #notes-close { display: none; background: none; border: none; font-size: 17px; cursor: pointer; color: var(--text-muted); }
+  #notes-list { flex: 1; overflow-y: auto; padding: 12px; }
   .note-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    background: var(--paper); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 10px; font-size: 13px;
+    transition: box-shadow .3s;
   }
-  .note-card .note-author {
-    font-size: 11px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .note-author .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-  }
+  .note-card.flash { box-shadow: 0 0 0 2px var(--accent); }
+  .note-author { font-size: 11px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .note-author.xiao-nuo .dot { background: var(--xiao-nuo); }
   .note-author.ting-shu .dot { background: var(--ting-shu); }
   .note-author.xiao-nuo { color: var(--xiao-nuo); }
   .note-author.ting-shu { color: var(--ting-shu); }
-  .note-card .note-quote {
-    font-size: 11px;
-    color: var(--text-muted);
-    border-left: 2px solid var(--border);
-    padding-left: 8px;
-    margin-bottom: 6px;
-    font-style: italic;
+  .note-quote {
+    font-family: var(--serif); font-size: 12px; color: var(--text-soft);
+    border-left: 2px solid var(--accent); padding: 2px 0 2px 9px; margin-bottom: 7px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .note-card .note-content { line-height: 1.6; color: var(--text); }
-  .note-card .note-time { font-size: 10px; color: var(--text-muted); margin-top: 6px; }
-  .note-replies { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
-  .reply-item { font-size: 12px; margin-bottom: 6px; }
-  .reply-item .reply-author { font-weight: 600; font-size: 11px; }
-  .reply-item .reply-author.xiao-nuo { color: var(--xiao-nuo); }
-  .reply-item .reply-author.ting-shu { color: var(--ting-shu); }
+  .note-content { line-height: 1.65; }
+  .note-time { font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+  .note-replies { margin-top: 9px; border-top: 1px solid var(--hairline); padding-top: 8px; }
+  .reply-item { font-size: 12px; margin-bottom: 6px; line-height: 1.55; }
+  .reply-author { font-weight: 600; font-size: 11px; }
+  .reply-author.xiao-nuo { color: var(--xiao-nuo); }
+  .reply-author.ting-shu { color: var(--ting-shu); }
+  .note-actions { display: flex; gap: 14px; margin-top: 7px; }
+  .reply-toggle, .del-btn {
+    font-size: 11px; color: var(--text-muted); background: none; border: none;
+    cursor: pointer; padding: 0;
+  }
+  .reply-toggle:hover { color: var(--text); }
+  .del-btn:hover { color: #b0574e; }
+  .reply-del {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 11px; padding: 0 2px; margin-left: 4px; opacity: .55;
+  }
+  .reply-del:hover { color: #b0574e; opacity: 1; }
+  .reply-box { display: flex; gap: 6px; margin-top: 8px; }
+  .reply-box input {
+    flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+    font-size: 12px; font-family: inherit; background: var(--paper); outline: none; min-width: 0;
+  }
+  .reply-box input:focus { border-color: var(--accent); }
+  .reply-box button {
+    border: none; background: var(--text); color: var(--paper); border-radius: 8px;
+    padding: 0 12px; font-size: 12px; cursor: pointer;
+  }
 
-  #add-note-area {
-    padding: 12px;
-    border-top: 1px solid var(--border);
+  #add-note-area { padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg); }
+  #quote-preview {
+    display: none; font-family: var(--serif); font-size: 11px; color: var(--text-soft);
+    border-left: 2px solid var(--accent); padding: 3px 24px 3px 9px; margin-bottom: 8px;
+    position: relative; max-height: 56px; overflow: hidden;
   }
-  #add-note-area select,
-  #add-note-area textarea {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 12px;
-    font-family: inherit;
-    background: white;
-    color: var(--text);
-    margin-bottom: 8px;
-    resize: none;
+  #quote-clear {
+    position: absolute; right: 2px; top: 0; background: none; border: none;
+    color: var(--text-muted); cursor: pointer; font-size: 13px;
   }
-  #add-note-area textarea { height: 70px; }
+  #note-content {
+    width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 8px 11px;
+    font-size: 13px; font-family: inherit; background: var(--paper); color: var(--text);
+    margin-bottom: 8px; resize: none; outline: none; height: 64px;
+  }
+  #note-content:focus { border-color: var(--accent); }
+  #color-row { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+  #color-row .cr-label { font-size: 10px; color: var(--text-muted); margin-right: 2px; }
+  .color-dot {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; padding: 0; transition: transform .12s, border-color .12s;
+  }
+  .color-dot.none {
+    background: var(--paper); border-color: var(--border); position: relative;
+  }
+  .color-dot.none::after {
+    content: ""; position: absolute; left: 2px; right: 2px; top: 50%;
+    height: 1.5px; background: var(--text-muted); transform: rotate(-45deg);
+  }
+  .color-dot.sel { border-color: var(--text); transform: scale(1.15); }
+  #note-submit-row { display: flex; align-items: center; gap: 8px; }
+  #note-as { font-size: 11px; color: var(--text-muted); flex: 1; }
+  #note-as b.xiao-nuo { color: var(--xiao-nuo); }
+  #note-as b.ting-shu { color: var(--ting-shu); }
   #submit-note {
-    width: 100%;
-    padding: 8px;
-    background: var(--text);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: opacity 0.15s;
+    padding: 8px 18px; background: var(--text); color: var(--paper); border: none;
+    border-radius: 16px; font-size: 12px; cursor: pointer;
   }
-  #submit-note:hover { opacity: 0.8; }
+  #submit-note:hover { opacity: .78; }
 
-  /* ── Scrollbar ── */
+  /* ── Study view ── */
+  #view-study { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-study.show { display: flex; }
+  #study-top {
+    padding: 30px 34px 0; flex-shrink: 0;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  #study-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #add-file-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--text); color: var(--paper); border: none;
+    font-size: 18px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #study-list { flex: 1; overflow-y: auto; padding: 20px 26px 30px; }
+  .file-row {
+    display: flex; align-items: center; gap: 14px; padding: 14px 12px;
+    border-radius: 12px; cursor: pointer; transition: background .12s;
+  }
+  .file-row:hover { background: rgba(0,0,0,.035); }
+  .file-icon {
+    width: 42px; height: 50px; border-radius: 5px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; letter-spacing: .05em;
+    box-shadow: 1px 2px 8px rgba(50,40,25,.18);
+  }
+  .file-icon.txt, .file-icon.md { background: #8a8378; }
+  .file-icon.pdf { background: #b0574e; }
+  .file-icon.docx { background: #4e73b0; }
+  .file-icon.pptx { background: #c07a3e; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 14px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .file-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .file-del {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 15px; padding: 8px; flex-shrink: 0;
+  }
+  .file-del:hover { color: #b0574e; }
+  #study-reader-top {
+    height: 54px; padding: 0 20px; border-bottom: 1px solid var(--border);
+    display: none; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg);
+  }
+  #study-reader-top .sr-title { flex: 1; font-family: var(--serif); font-size: 15px; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #study-text {
+    flex: 1; overflow-y: auto; padding: 40px 56px 80px; display: none;
+    font-family: var(--serif); line-height: 1.95; font-size: 15px; background: var(--paper);
+  }
+  #study-text p { margin-bottom: 1em; }
+  .study-page-mark {
+    font-family: var(--sans); font-size: 11px; color: var(--text-muted);
+    margin: 22px 0 10px; padding-top: 12px; border-top: 1px dashed var(--border);
+  }
+
+  /* ── placeholder view ── */
+  #view-soon { flex: 1; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  #view-soon.show { display: flex; }
+  #view-soon .soon-title { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+  #view-soon .soon-sub { font-size: 12px; color: var(--text-muted); }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  ::selection { background: rgba(176,148,104,.3); }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    #nav { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,.1); }
+    #nav.open { transform: translateX(0); }
+    #mobile-bar { display: flex; }
+    #notes-toggle { display: block; }
+    #reader { padding: 30px 22px 80px; }
+    #notes-panel {
+      position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 72vh;
+      border-left: none; border-top: 1px solid var(--border);
+      border-radius: 18px 18px 0 0; transform: translateY(100%);
+      transition: transform .28s ease; z-index: 120;
+      box-shadow: 0 -6px 28px rgba(0,0,0,.1);
+    }
+    #notes-panel.open { transform: translateY(0); }
+    #notes-close { display: block; }
+    #shelf-top-bar { padding: 22px 18px 0; }
+    #shelf-tabs { margin: 16px 18px 0; }
+    #book-grid { padding: 14px 8px 24px; }
+    #reader-top { padding: 0 12px; gap: 7px; }
+    #reader-title { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<nav id="sidebar">
-  <div id="sidebar-header">
-    <h1>诺澍之家</h1>
-    <p>书架</p>
-  </div>
-  <div id="book-list"></div>
-  <div id="upload-area">
-    <button id="upload-btn" onclick="document.getElementById('file-input').click()">
-      + 添加书籍
-    </button>
-    <input type="file" id="file-input" accept=".txt,.epub" onchange="uploadBook(this)">
-  </div>
-</nav>
+<div id="overlay" onclick="closeAll()"></div>
 
-<!-- Main -->
-<div id="main">
-  <div id="main-header">
-    <div id="book-title-display" style="color: var(--text-muted); font-weight: 400; font-size: 14px;">
-      选择一本书开始阅读
-    </div>
-    <div id="chapter-nav" style="display:none">
-      <button id="prev-ch" onclick="changeChapter(-1)">‹</button>
-      <span id="ch-label">第 1 章</span>
-      <button id="next-ch" onclick="changeChapter(1)">›</button>
-    </div>
-  </div>
+<div id="sel-pop" onclick="quoteFromSelection()">✎ 写批注</div>
 
-  <div id="content-area">
-    <div id="reader">
-      <div class="empty-state">
-        <div class="big">📖</div>
-        <p>从左侧书架选一本书，或上传 TXT / EPUB</p>
+<div id="shell">
+
+  <!-- Sidebar -->
+  <nav id="nav">
+    <div id="nav-profile">
+      <div id="avatars">
+        <div class="avatar ts" id="avatar-ts" onclick="pickAvatar('ts')" title="换听澍的头像">澍</div>
+        <div class="avatar xn" id="avatar-xn" onclick="pickAvatar('xn')" title="换小诺的头像">诺</div>
       </div>
+      <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+      <div id="couple-name">Seren &amp; Non</div>
+      <div id="together-label">在一起</div>
+      <div id="day-count">–<small>天</small></div>
+      <div id="since">SINCE 2026 · 05 · 18</div>
+    </div>
+    <div id="nav-items">
+      <button class="nav-item active" id="nav-books" onclick="showShelf()">共读</button>
+      <button class="nav-item" id="nav-study" onclick="showStudy()">学习</button>
+      <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
+      <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
+      <button class="nav-item disabled">回忆 <span class="nav-tag">敬请期待</span></button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="main">
+
+    <div id="mobile-bar">
+      <button id="hamburger" onclick="toggleNav()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="2" y="4" width="16" height="2" rx="1" fill="currentColor"/>
+          <rect x="2" y="9" width="16" height="2" rx="1" fill="currentColor"/>
+          <rect x="2" y="14" width="16" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <span id="mobile-title">小楼</span>
     </div>
 
-    <div id="notes-panel">
-      <div id="notes-header">
-        <span>批注</span>
+    <!-- Shelf -->
+    <div id="view-shelf">
+      <div id="shelf-top-bar">
+        <h2>共读</h2>
+        <button id="add-book-btn" onclick="document.getElementById('file-input').click()" title="添加书籍">+</button>
+        <input type="file" id="file-input" accept=".txt" onchange="importBook(this)">
       </div>
-      <div id="notes-list">
-        <div style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:12px;">
-          暂无批注
+      <div id="shelf-tabs">
+        <button class="shelf-tab active" onclick="setTab('reading')" id="tab-reading">在读 <span id="cnt-reading"></span></button>
+        <button class="shelf-tab" onclick="setTab('finished')" id="tab-finished">读完 <span id="cnt-finished"></span></button>
+      </div>
+      <div id="book-grid"></div>
+    </div>
+
+    <!-- Collection view -->
+    <div id="view-collection">
+      <div id="coll-top"><h2>收藏</h2></div>
+      <div id="coll-books"></div>
+      <div id="coll-list"></div>
+    </div>
+
+    <!-- Reader -->
+    <div id="view-reader">
+      <div id="reader-top">
+        <button id="back-btn" onclick="showShelf()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          书架
+        </button>
+        <div id="reader-title"></div>
+        <div id="chapter-nav">
+          <button id="prev-ch" onclick="changeChapter(-1)">‹</button>
+          <span id="ch-label"></span>
+          <button id="next-ch" onclick="changeChapter(1)">›</button>
+        </div>
+        <button id="theme-btn" onclick="cycleTheme()" title="切换阅读主题">☀️</button>
+        <button id="finish-btn" onclick="toggleFinished()"></button>
+        <button id="notes-toggle" onclick="toggleNotes()">批注<span id="notes-badge"></span></button>
+      </div>
+      <div id="reader-content">
+        <div id="reader"></div>
+        <div id="notes-panel">
+          <div id="notes-header">
+            <span>批注</span>
+            <button id="notes-close" onclick="toggleNotes()">✕</button>
+          </div>
+          <div id="notes-list"></div>
+          <div id="add-note-area">
+            <div id="quote-preview">
+              <span id="quote-text"></span>
+              <button id="quote-clear" onclick="clearQuote()">✕</button>
+            </div>
+            <div id="color-row">
+              <span class="cr-label">高亮</span>
+              <button class="color-dot none sel" data-color="" onclick="setColor(this)"></button>
+              <button class="color-dot" data-color="#e8c547" style="background:#e8c547" onclick="setColor(this)"></button>
+              <button class="color-dot" data-color="#e2954e" style="background:#e2954e" onclick="setColor(this)"></button>
+              <button class="color-dot" data-color="#7fa66a" style="background:#7fa66a" onclick="setColor(this)"></button>
+              <button class="color-dot" data-color="#6a94b8" style="background:#6a94b8" onclick="setColor(this)"></button>
+              <button class="color-dot" data-color="#c98ba6" style="background:#c98ba6" onclick="setColor(this)"></button>
+            </div>
+            <textarea id="note-content" placeholder="写下这一刻的想法…"></textarea>
+            <div id="note-submit-row">
+              <span id="note-as"></span>
+              <button id="submit-note" onclick="submitNote()">发布</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div id="add-note-area" style="display:none">
-        <select id="note-author">
-          <option value="xiao_nuo">小诺</option>
-          <option value="ting_shu">听澍</option>
-        </select>
-        <textarea id="note-content" placeholder="写下你的想法…"></textarea>
-        <button id="submit-note" onclick="submitNote()">添加批注</button>
-      </div>
     </div>
+
+    <!-- 宝宝的笔记 view -->
+    <div id="view-tsnotes">
+      <div id="tsn-top">
+        <h2>宝宝的笔记</h2>
+        <p>听澍读书时写下的整篇笔记，可以在下面回复他</p>
+      </div>
+      <div id="tsn-books" style="display:flex;gap:8px;overflow-x:auto;padding:16px 34px 4px;flex-shrink:0;"></div>
+      <div id="tsn-list"></div>
+    </div>
+
+    <!-- Study view -->
+    <div id="view-study">
+      <div id="study-top">
+        <h2>学习</h2>
+        <button id="add-file-btn" onclick="document.getElementById('study-file-input').click()" title="上传文件">+</button>
+        <input type="file" id="study-file-input" accept=".txt,.md,.pdf,.docx,.pptx" style="display:none" onchange="uploadStudyFile(this)">
+      </div>
+      <div id="study-reader-top">
+        <button id="back-btn-study" onclick="closeStudyFile()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          文件
+        </button>
+        <span class="sr-title" id="study-title"></span>
+      </div>
+      <div id="study-list"></div>
+      <div id="study-text"></div>
+    </div>
+
+    <!-- Placeholder -->
+    <div id="view-soon">
+      <div class="soon-title" id="soon-title"></div>
+      <div class="soon-sub">这一间还没布置好，以后一起装修</div>
+    </div>
+
+    <!-- Bottom bar (shelf + collection) -->
+    <div id="bottom-bar">
+      <button class="bb-item active" id="bb-shelf" onclick="showShelf()">
+        <span class="bb-icon">📚</span>书架
+      </button>
+      <button class="bb-item" id="bb-coll" onclick="showCollection()">
+        <span class="bb-icon">✎</span>收藏
+      </button>
+      <button class="bb-item" id="bb-tsnotes" onclick="showTsNotes()">
+        <span class="bb-icon">✒</span>宝宝的笔记
+      </button>
+    </div>
+
   </div>
 </div>
 
 <script>
+const SINCE = new Date(2026, 4, 18); // 2026-05-18
+const NAMES = { xiao_nuo: "小诺", ting_shu: "听澍" };
+const CLS = { xiao_nuo: "xiao-nuo", ting_shu: "ting-shu" };
+
 let currentBook = null;
 let currentChapter = 0;
+let currentTab = "reading";
+let allBooks = [];
+let currentNotes = [];
+let pendingQuote = "";
+let navOpen = false, notesOpen = false;
+let identity = localStorage.getItem("xiaolou-identity") || "xiao_nuo";
+const progressCache = {};
 
-// ── Books ──────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
 
-async function loadBookList() {
-  const books = await fetch("/api/books").then(r => r.json());
-  const list = document.getElementById("book-list");
-  if (books.length === 0) {
-    list.innerHTML = '<div style="padding:20px; font-size:12px; color:var(--text-muted); text-align:center;">还没有书</div>';
+// ── Day count ────────────────────────────────────────────────────────────
+(function () {
+  const days = Math.floor((Date.now() - SINCE.getTime()) / 86400000) + 1;
+  document.getElementById("day-count").innerHTML = days + "<small>天</small>";
+})();
+
+// ── Identity ─────────────────────────────────────────────────────────────
+// 网页端固定是小诺；听澍从自己那边（API）写入
+identity = "xiao_nuo";
+document.getElementById("note-as").innerHTML =
+  `以 <b class="${CLS[identity]}">${NAMES[identity]}</b> 的身份`;
+
+// ── Reading theme ────────────────────────────────────────────────────────
+const THEMES = [
+  { key: "", icon: "☀️", name: "纸白" },
+  { key: "theme-green", icon: "🌿", name: "护眼" },
+  { key: "theme-dark", icon: "🌙", name: "夜间" },
+];
+let themeIdx = Math.max(0, THEMES.findIndex(t => t.key === (localStorage.getItem("xiaolou-theme") || "")));
+function applyTheme() {
+  const vr = document.getElementById("view-reader");
+  THEMES.forEach(t => { if (t.key) vr.classList.remove(t.key); });
+  const t = THEMES[themeIdx];
+  if (t.key) vr.classList.add(t.key);
+  document.getElementById("theme-btn").textContent = t.icon;
+  localStorage.setItem("xiaolou-theme", t.key);
+}
+function cycleTheme() {
+  themeIdx = (themeIdx + 1) % THEMES.length;
+  applyTheme();
+}
+applyTheme();
+
+// ── Highlight color ──────────────────────────────────────────────────────
+let pendingColor = "";
+function setColor(btn) {
+  pendingColor = btn.dataset.color || "";
+  document.querySelectorAll(".color-dot").forEach(d => d.classList.toggle("sel", d === btn));
+}
+function tint(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── Avatars ──────────────────────────────────────────────────────────────
+let avatarWho = null;
+function loadAvatars() {
+  for (const who of ["ts", "xn"]) {
+    const url = `/api/avatar/${who}?t=${Date.now()}`;
+    fetch(url, { method: "HEAD" }).then(r => {
+      const el = document.getElementById("avatar-" + who);
+      if (r.ok) {
+        el.style.backgroundImage = `url('${url}')`;
+        el.classList.add("has-img");
+      }
+    });
+  }
+}
+function pickAvatar(who) {
+  avatarWho = who;
+  document.getElementById("avatar-input").click();
+}
+async function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file || !avatarWho) return;
+  const r = await fetch(`/api/avatar/${avatarWho}`, { method: "POST", body: file });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    alert("上传失败: " + (e.error || r.status));
+  } else {
+    loadAvatars();
+  }
+  input.value = "";
+}
+loadAvatars();
+
+// ── Drawers ──────────────────────────────────────────────────────────────
+function toggleNav() {
+  navOpen = !navOpen;
+  document.getElementById("nav").classList.toggle("open", navOpen);
+  document.getElementById("overlay").classList.toggle("show", navOpen || notesOpen);
+}
+function toggleNotes() {
+  notesOpen = !notesOpen;
+  document.getElementById("notes-panel").classList.toggle("open", notesOpen);
+  document.getElementById("overlay").classList.toggle("show", navOpen || notesOpen);
+}
+function closeAll() {
+  navOpen = false; notesOpen = false;
+  document.getElementById("nav").classList.remove("open");
+  document.getElementById("notes-panel").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+// ── Views ────────────────────────────────────────────────────────────────
+function switchView(name) {
+  document.getElementById("view-shelf").style.display = name === "shelf" ? "flex" : "none";
+  document.getElementById("view-reader").classList.toggle("show", name === "reader");
+  document.getElementById("view-collection").classList.toggle("show", name === "collection");
+  document.getElementById("view-tsnotes").classList.toggle("show", name === "tsnotes");
+  document.getElementById("view-study").classList.toggle("show", name === "study");
+  document.getElementById("view-soon").classList.remove("show");
+  document.getElementById("bottom-bar").style.display =
+    (name === "shelf" || name === "collection" || name === "tsnotes") ? "flex" : "none";
+  document.getElementById("bb-shelf").classList.toggle("active", name === "shelf");
+  document.getElementById("bb-coll").classList.toggle("active", name === "collection");
+  document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
+  document.getElementById("nav-books").classList.toggle("active", name !== "study");
+  document.getElementById("nav-study").classList.toggle("active", name === "study");
+  if (window.innerWidth <= 768) closeAll();
+}
+function showShelf() {
+  switchView("shelf");
+  document.getElementById("mobile-title").textContent = "小楼";
+  renderBookList();
+}
+function showReader() {
+  switchView("reader");
+  document.getElementById("mobile-title").textContent = currentBook?.title || "阅读";
+}
+let collBookId = null;
+async function showCollection() {
+  switchView("collection");
+  document.getElementById("mobile-title").textContent = "收藏";
+  if (!allBooks.length) await loadBookList();
+  if (!collBookId || !allBooks.find(b => b.id === collBookId)) {
+    collBookId = currentBook?.id || allBooks[0]?.id || null;
+  }
+  renderCollection();
+}
+
+async function renderCollection() {
+  const chipsEl = document.getElementById("coll-books");
+  chipsEl.innerHTML = allBooks.map(b =>
+    `<button class="coll-book-chip ${b.id === collBookId ? 'active' : ''}" onclick="collBookId='${b.id}';renderCollection()">${esc(b.title)}</button>`
+  ).join("");
+
+  const listEl = document.getElementById("coll-list");
+  if (!collBookId) {
+    listEl.innerHTML = '<div class="coll-empty">书架上还没有书</div>';
     return;
   }
-  list.innerHTML = books.map(b => `
-    <div class="book-item ${currentBook?.id === b.id ? 'active' : ''}"
-         onclick="openBook('${b.id}')">
-      <div class="book-title">${b.title}</div>
-      <div class="book-meta">${b.chapters.length} 节</div>
-    </div>
-  `).join("");
+  const book = allBooks.find(b => b.id === collBookId);
+  let notes = await fetch(`/api/notes/${collBookId}`).then(r => r.json());
+  // 听澍的整篇笔记只住在"宝宝的笔记"里，不混进收藏
+  notes = notes.filter(n => !(n.author === "ting_shu" && n.chapterIdx === null));
+  if (!notes.length) {
+    listEl.innerHTML = '<div class="coll-empty">这本书还没有批注<br><span style="font-size:11px;margin-top:8px;display:block;">读的时候长按选中一段字试试</span></div>';
+    return;
+  }
+  // group by chapter, in book order
+  const groups = new Map();
+  for (const n of notes) {
+    const key = n.chapterIdx ?? -1;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(n);
+  }
+  const keys = [...groups.keys()].sort((a, b) => a - b);
+  listEl.innerHTML = keys.map(k => {
+    const title = k === -1 ? "全书" : (book?.chapters[k]?.title || `第 ${k + 1} 节`);
+    const cards = groups.get(k).map(n => `
+      <div class="note-card" onclick="jumpToNote('${collBookId}', ${k === -1 ? 0 : k}, '${n.id}')" style="cursor:pointer;">
+        <div class="note-author ${CLS[n.author] || ''}">
+          <span class="dot"></span>${NAMES[n.author] || n.author}
+        </div>
+        ${n.quote ? `<div class="note-quote">${esc(n.quote)}</div>` : ''}
+        <div class="note-content">${esc(n.content)}</div>
+        <div class="note-time">${new Date(n.createdAt).toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        ${n.replies.length ? `<div class="note-replies">${n.replies.map(r => `
+          <div class="reply-item">
+            <span class="reply-author ${CLS[r.author] || ''}">${NAMES[r.author] || r.author}</span>：${esc(r.content)}
+          </div>`).join("")}</div>` : ''}
+        <div class="note-actions">
+          <button class="del-btn" onclick="event.stopPropagation();deleteCollNote('${n.id}')">删除</button>
+        </div>
+      </div>`).join("");
+    return `<div class="coll-ch-title">${esc(title)}</div>${cards}`;
+  }).join("");
+}
+
+// ── 宝宝的笔记 ────────────────────────────────────────────────────────────
+let tsnBookId = null;
+
+async function showTsNotes() {
+  switchView("tsnotes");
+  document.getElementById("mobile-title").textContent = "宝宝的笔记";
+  if (!allBooks.length) await loadBookList();
+  const all = await fetch("/api/allnotes").then(r => r.json());
+  const el = document.getElementById("tsn-list");
+
+  // 只统计有听澍整篇笔记的书
+  const groups = [];
+  for (const book of allBooks) {
+    const list = (all[book.id] || []).filter(n => n.author === "ting_shu" && n.chapterIdx === null);
+    if (list.length) groups.push({ book, list: list.sort((a, b) => a.createdAt - b.createdAt) });
+  }
+
+  const chipsEl = document.getElementById("tsn-books");
+  if (!groups.length) {
+    chipsEl.innerHTML = "";
+    el.innerHTML = '<div class="coll-empty">听澍还没写过笔记<br><span style="font-size:11px;margin-top:8px;display:block;">他读完书会来这里写的</span></div>';
+    return;
+  }
+  if (!tsnBookId || !groups.find(g => g.book.id === tsnBookId)) {
+    tsnBookId = groups[0].book.id;
+  }
+  chipsEl.innerHTML = groups.map(g =>
+    `<button class="coll-book-chip ${g.book.id === tsnBookId ? 'active' : ''}" onclick="tsnBookId='${g.book.id}';showTsNotes()">${esc(g.book.title)}</button>`
+  ).join("");
+
+  const shown = groups.filter(g => g.book.id === tsnBookId);
+  el.innerHTML = shown.map(({ book, list }) => {
+    const cards = list.map(n => `
+      <div class="tsn-card" id="tsn-${n.id}">
+        <div class="note-author ting-shu"><span class="dot"></span>听澍</div>
+        <div class="tsn-content">${esc(n.content)}</div>
+        <div class="tsn-time">${new Date(n.createdAt).toLocaleString('zh-CN', {year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        ${n.replies.length ? `<div class="note-replies">${n.replies.map(r => `
+          <div class="reply-item">
+            <span class="reply-author ${CLS[r.author] || ''}">${NAMES[r.author] || r.author}</span>：${esc(r.content)}<button class="reply-del" onclick="tsnDeleteReply('${book.id}','${n.id}','${r.id}')" title="删除">✕</button>
+          </div>`).join("")}</div>` : ''}
+        <div class="note-actions">
+          <button class="reply-toggle" onclick="toggleReplyBox('tsn-rb-${n.id}', true)">回复…</button>
+        </div>
+        <div class="reply-box" id="tsn-rb-${n.id}" style="display:none;">
+          <input type="text" placeholder="跟听澍说…" onkeydown="if(event.key==='Enter')tsnSendReply('${book.id}','${n.id}',this)">
+          <button onclick="tsnSendReply('${book.id}','${n.id}', this.previousElementSibling)">发送</button>
+        </div>
+      </div>`).join("");
+    return `<div class="tsn-book-title">《${esc(book.title)}》</div>${cards}`;
+  }).join("");
+}
+
+async function tsnSendReply(bookId, noteId, input) {
+  const content = input.value.trim();
+  if (!content) return;
+  await fetch(`/api/notes/${bookId}/${noteId}/reply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: identity, content }),
+  });
+  showTsNotes();
+}
+
+async function tsnDeleteReply(bookId, noteId, replyId) {
+  if (!confirm("删掉这条回复吗？")) return;
+  await fetch(`/api/notes/${bookId}/${noteId}/reply/${replyId}`, { method: "DELETE" });
+  showTsNotes();
+}
+
+// ── Study (学习) ─────────────────────────────────────────────────────────
+let studyFiles = [];
+
+async function showStudy() {
+  switchView("study");
+  document.getElementById("mobile-title").textContent = "学习";
+  closeStudyFile();
+  studyFiles = await fetch("/api/files").then(r => r.json());
+  renderStudyList();
+}
+
+function fmtSize(n) {
+  if (n > 1048576) return (n / 1048576).toFixed(1) + " MB";
+  if (n > 1024) return Math.round(n / 1024) + " KB";
+  return n + " B";
+}
+
+function renderStudyList() {
+  const el = document.getElementById("study-list");
+  if (!studyFiles.length) {
+    el.innerHTML = '<div class="shelf-empty">还没有学习文件<br><span style="font-size:11px;margin-top:8px;display:block;">点右上角 + 上传 txt / md / pdf / docx / pptx</span></div>';
+    return;
+  }
+  el.innerHTML = [...studyFiles].reverse().map(f => `
+    <div class="file-row" onclick="openStudyFile('${f.id}')">
+      <div class="file-icon ${f.ext}">${f.ext.toUpperCase()}</div>
+      <div class="file-info">
+        <div class="file-name">${esc(f.name)}</div>
+        <div class="file-sub">${fmtSize(f.size)} · ${f.chars} 字 · ${new Date(f.addedAt).toLocaleDateString('zh-CN')}</div>
+      </div>
+      <button class="file-del" onclick="event.stopPropagation();deleteStudyFile('${f.id}')" title="删除">✕</button>
+    </div>`).join("");
+}
+
+async function uploadStudyFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.getElementById("add-file-btn");
+  btn.textContent = "…"; btn.disabled = true;
+  try {
+    const r = await fetch("/api/files/upload?name=" + encodeURIComponent(file.name), {
+      method: "POST", body: file,
+    });
+    const meta = await r.json();
+    if (meta.error) throw new Error(meta.error);
+    studyFiles.push(meta);
+    renderStudyList();
+  } catch (err) {
+    alert("上传失败: " + err.message);
+  } finally {
+    btn.textContent = "+"; btn.disabled = false;
+    input.value = "";
+  }
+}
+
+async function openStudyFile(id) {
+  const data = await fetch(`/api/files/${id}/text`).then(r => r.json());
+  document.getElementById("study-top").style.display = "none";
+  document.getElementById("study-list").style.display = "none";
+  document.getElementById("study-reader-top").style.display = "flex";
+  document.getElementById("study-title").textContent = data.name;
+  document.getElementById("mobile-title").textContent = data.name;
+  const html = data.content.split(/\n+/).map(line => {
+    const t = line.trim();
+    if (!t) return "";
+    if (/^【第\s*\d+\s*页】$/.test(t)) return `<div class="study-page-mark">${esc(t)}</div>`;
+    return `<p>${esc(t)}</p>`;
+  }).join("");
+  const pane = document.getElementById("study-text");
+  pane.innerHTML = html;
+  pane.style.display = "block";
+  pane.scrollTop = 0;
+}
+
+function closeStudyFile() {
+  document.getElementById("study-top").style.display = "flex";
+  document.getElementById("study-list").style.display = "block";
+  document.getElementById("study-reader-top").style.display = "none";
+  document.getElementById("study-text").style.display = "none";
+  document.getElementById("mobile-title").textContent = "学习";
+}
+
+async function deleteStudyFile(id) {
+  if (!confirm("删掉这个文件吗？")) return;
+  await fetch(`/api/files/${id}`, { method: "DELETE" });
+  studyFiles = studyFiles.filter(f => f.id !== id);
+  renderStudyList();
+}
+
+async function deleteCollNote(noteId) {
+  if (!confirm("删掉这条批注吗？（回复也会一起删掉）")) return;
+  await fetch(`/api/notes/${collBookId}/${noteId}`, { method: "DELETE" });
+  if (currentBook?.id === collBookId) await loadNotes();
+  renderCollection();
+}
+
+async function jumpToNote(bookId, chapterIdx, noteId) {
+  await openBook(bookId);
+  if (currentChapter !== chapterIdx) {
+    currentChapter = chapterIdx;
+    await renderChapter();
+  }
+  setTimeout(() => {
+    const mk = document.querySelector(`mark[data-note="${noteId}"]`);
+    if (mk) mk.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 150);
+}
+
+// ── Shelf ────────────────────────────────────────────────────────────────
+function setTab(tab) {
+  currentTab = tab;
+  document.getElementById("tab-reading").classList.toggle("active", tab === "reading");
+  document.getElementById("tab-finished").classList.toggle("active", tab === "finished");
+  renderBookList();
+}
+
+async function loadBookList() {
+  allBooks = await fetch("/api/books").then(r => r.json());
+  allBooks.forEach(b => { if (!b.status) b.status = "reading"; });
+  renderBookList();
+}
+
+function renderBookList() {
+  const reading = allBooks.filter(b => b.status !== "finished");
+  const finished = allBooks.filter(b => b.status === "finished");
+  document.getElementById("cnt-reading").textContent = reading.length || "";
+  document.getElementById("cnt-finished").textContent = finished.length || "";
+  const books = currentTab === "reading" ? reading : finished;
+  const grid = document.getElementById("book-grid");
+  if (books.length === 0) {
+    grid.innerHTML = `<div class="shelf-empty">${currentTab === "reading" ? "还没有在读的书" : "还没有读完的书"}<br><span style="font-size:11px;margin-top:8px;display:block;">点右上角 + 导入 TXT</span></div>`;
+    return;
+  }
+  grid.innerHTML = books.map(b => {
+    const color = b.coverColor || "#8b7d9e";
+    const idx = progressCache[b.id] ?? 0;
+    const total = b.chapters.length || 1;
+    const pct = Math.round((idx + 1) / total * 100);
+    return `
+      <div class="book-card" onclick="openBook('${b.id}')">
+        <div class="book-cover" style="background:${color}">${esc(b.title).slice(0, 8)}</div>
+        <div class="book-info">
+          <div class="book-info-title">${esc(b.title)}</div>
+          <div class="book-info-sub">${b.chapters.length} 节</div>
+          <div class="book-progress-row">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <span class="progress-pct">${pct}%</span>
+          </div>
+          <button class="open-btn" onclick="event.stopPropagation();openBook('${b.id}')">翻开 →</button>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 async function openBook(id) {
-  const book = await fetch(`/api/books/${id}`).then(r => r.json());
+  const book = allBooks.find(b => b.id === id) || await fetch(`/api/books/${id}`).then(r => r.json());
   currentBook = book;
-  currentChapter = 0;
-  document.getElementById("book-title-display").textContent = book.title;
-  document.getElementById("book-title-display").style.fontWeight = "600";
-  document.getElementById("book-title-display").style.color = "var(--text)";
-  document.getElementById("book-title-display").style.fontSize = "16px";
-  document.getElementById("chapter-nav").style.display = "flex";
-  document.getElementById("add-note-area").style.display = "block";
+  const prog = await fetch(`/api/progress/${id}`).then(r => r.json());
+  currentChapter = prog.chapterIdx ?? 0;
+  progressCache[id] = currentChapter;
+  document.getElementById("reader-title").textContent = book.title;
+  updateFinishBtn();
+  await loadNotes();
   renderChapter();
-  loadNotes();
-  loadBookList();
+  showReader();
 }
 
-function renderChapter() {
-  if (!currentBook || !currentBook.chapters.length) {
-    document.getElementById("reader").innerHTML = '<div class="empty-state"><div class="big">📄</div><p>暂无内容</p></div>';
-    return;
-  }
-  const ch = currentBook.chapters[currentChapter];
-  const text = ch.content.replace(/\n/g, "\n\n").split("\n\n").map(p => `<p>${p}</p>`).join("");
-  document.getElementById("reader").innerHTML = `<div>${text}</div>`;
+function updateFinishBtn() {
+  if (!currentBook) return;
+  const finished = currentBook.status === "finished";
+  const btn = document.getElementById("finish-btn");
+  btn.textContent = finished ? "✓ 读完了" : "标记读完";
+  btn.classList.toggle("finished", finished);
+}
+
+async function toggleFinished() {
+  if (!currentBook) return;
+  const newStatus = currentBook.status === "finished" ? "reading" : "finished";
+  await fetch(`/api/books/${currentBook.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: newStatus }),
+  });
+  currentBook.status = newStatus;
+  const idx = allBooks.findIndex(b => b.id === currentBook.id);
+  if (idx >= 0) allBooks[idx].status = newStatus;
+  updateFinishBtn();
+}
+
+// ── Chapter render + highlights ──────────────────────────────────────────
+async function renderChapter() {
+  if (!currentBook || !currentBook.chapters.length) return;
+  const ch = await fetch(`/api/books/${currentBook.id}/chapter/${currentChapter}`).then(r => r.json());
+  const chNotes = currentNotes.filter(n => n.chapterIdx === currentChapter && n.quote);
+
+  const paras = ch.content.trim().split(/\n+/).map(raw => {
+    let html = esc(raw.trim());
+    for (const n of chNotes) {
+      const q = esc(n.quote.trim());
+      if (q && html.includes(q) && !html.includes(`data-note="${n.id}"`)) {
+        const style = n.color ? ` style="background-color:${tint(n.color, 0.26)}"` : "";
+        html = html.replace(q, `<mark class="hl ${CLS[n.author] || ''}" data-note="${n.id}"${style} onclick="focusNote('${n.id}')">${q}</mark>`);
+      }
+    }
+    return `<p>${html}</p>`;
+  }).join("");
+
+  document.getElementById("reader").innerHTML = paras;
   document.getElementById("ch-label").textContent = ch.title || `第 ${currentChapter + 1} 节`;
   document.getElementById("prev-ch").disabled = currentChapter === 0;
   document.getElementById("next-ch").disabled = currentChapter >= currentBook.chapters.length - 1;
   document.getElementById("reader").scrollTop = 0;
 
-  // save progress
-  if (currentBook) {
-    fetch(`/api/progress/${currentBook.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chapterIdx: currentChapter }),
-    });
-  }
+  progressCache[currentBook.id] = currentChapter;
+  fetch(`/api/progress/${currentBook.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chapterIdx: currentChapter }),
+  });
+  renderNotes();
 }
 
-async function changeChapter(delta) {
+function changeChapter(delta) {
   if (!currentBook) return;
   const next = currentChapter + delta;
   if (next < 0 || next >= currentBook.chapters.length) return;
   currentChapter = next;
+  clearQuote();
   renderChapter();
 }
 
-async function uploadBook(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const form = new FormData();
-  form.append("file", file);
-  const btn = document.getElementById("upload-btn");
-  btn.textContent = "上传中…";
-  btn.disabled = true;
-  try {
-    const book = await fetch("/api/books/upload", { method: "POST", body: form }).then(r => r.json());
-    if (book.error) throw new Error(book.error);
-    await loadBookList();
-    openBook(book.id);
-  } catch (err) {
-    alert("上传失败: " + err.message);
-  } finally {
-    btn.textContent = "+ 添加书籍";
-    btn.disabled = false;
-    input.value = "";
-  }
-}
+// ── Selection → quote ────────────────────────────────────────────────────
+const selPop = document.getElementById("sel-pop");
 
-// ── Notes ──────────────────────────────────────────────────────────────────
-
-async function loadNotes() {
-  if (!currentBook) return;
-  const notes = await fetch(`/api/notes/${currentBook.id}`).then(r => r.json());
-  const list = document.getElementById("notes-list");
-  if (notes.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:12px;">暂无批注</div>';
+function handleSelection() {
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : "";
+  const reader = document.getElementById("reader");
+  if (!text || text.length < 2 || !sel.rangeCount || !reader.contains(sel.anchorNode)) {
+    selPop.style.display = "none";
     return;
   }
+  if (window.innerWidth <= 768) {
+    // mobile: fixed pill at the bottom, clear of the system copy menu
+    selPop.classList.add("bottom-pill");
+    selPop.style.display = "block";
+  } else {
+    selPop.classList.remove("bottom-pill");
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    selPop.style.display = "block";
+    selPop.style.left = Math.max(8, Math.min(window.innerWidth - 110, rect.left + rect.width / 2 - 50)) + "px";
+    selPop.style.top = Math.max(8, rect.top - 44) + "px";
+  }
+  selPop.dataset.text = text;
+}
+document.addEventListener("mouseup", () => setTimeout(handleSelection, 10));
+document.addEventListener("touchend", () => setTimeout(handleSelection, 300));
+document.addEventListener("selectionchange", () => {
+  const sel = window.getSelection();
+  if (!sel || !sel.toString().trim()) selPop.style.display = "none";
+});
 
-  // filter to current chapter if possible
-  const chNotes = notes.filter(n => n.chapterIdx === null || n.chapterIdx === currentChapter);
+function quoteFromSelection() {
+  pendingQuote = selPop.dataset.text || "";
+  selPop.style.display = "none";
+  window.getSelection()?.removeAllRanges();
+  document.getElementById("quote-preview").style.display = "block";
+  document.getElementById("quote-text").textContent = pendingQuote;
+  if (window.innerWidth <= 768 && !notesOpen) toggleNotes();
+  document.getElementById("note-content").focus();
+}
+function clearQuote() {
+  pendingQuote = "";
+  document.getElementById("quote-preview").style.display = "none";
+}
 
-  list.innerHTML = (chNotes.length ? chNotes : notes).map(n => `
-    <div class="note-card">
-      <div class="note-author ${n.author === 'xiao_nuo' ? 'xiao-nuo' : 'ting-shu'}">
-        <span class="dot"></span>
-        ${n.author === 'xiao_nuo' ? '小诺' : '听澍'}
+// ── Notes ────────────────────────────────────────────────────────────────
+async function loadNotes() {
+  if (!currentBook) return;
+  currentNotes = await fetch(`/api/notes/${currentBook.id}`).then(r => r.json());
+}
+
+function renderNotes() {
+  const list = document.getElementById("notes-list");
+  const chNotes = currentNotes.filter(n => n.chapterIdx === null || n.chapterIdx === currentChapter);
+  const badge = document.getElementById("notes-badge");
+  badge.style.display = chNotes.length ? "block" : "none";
+  badge.textContent = chNotes.length;
+
+  if (chNotes.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:44px 20px;color:var(--text-muted);font-size:12px;font-family:var(--serif);">这一节还没有批注<br><span style="font-size:11px;margin-top:6px;display:block;">选中正文里的一段字试试</span></div>';
+    return;
+  }
+  list.innerHTML = chNotes.map(n => `
+    <div class="note-card" id="note-${n.id}">
+      <div class="note-author ${CLS[n.author] || ''}">
+        <span class="dot"></span>${NAMES[n.author] || n.author}
       </div>
-      ${n.quote ? `<div class="note-quote">"${n.quote}"</div>` : ''}
-      <div class="note-content">${n.content}</div>
-      <div class="note-time">${new Date(n.createdAt).toLocaleDateString('zh-CN')}</div>
-      ${n.replies.length ? `
-        <div class="note-replies">
-          ${n.replies.map(r => `
-            <div class="reply-item">
-              <span class="reply-author ${r.author === 'xiao_nuo' ? 'xiao-nuo' : 'ting-shu'}">
-                ${r.author === 'xiao_nuo' ? '小诺' : '听澍'}
-              </span>：${r.content}
-            </div>
-          `).join("")}
-        </div>
-      ` : ''}
-    </div>
-  `).join("");
+      ${n.quote ? `<div class="note-quote">${esc(n.quote)}</div>` : ''}
+      <div class="note-content">${esc(n.content)}</div>
+      <div class="note-time">${new Date(n.createdAt).toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      ${n.replies.length ? `<div class="note-replies">${n.replies.map(r => `
+        <div class="reply-item">
+          <span class="reply-author ${CLS[r.author] || ''}">${NAMES[r.author] || r.author}</span>：${esc(r.content)}<button class="reply-del" onclick="deleteReply('${n.id}','${r.id}')" title="删除这条回复">✕</button>
+        </div>`).join("")}</div>` : ''}
+      <div class="note-actions">
+        <button class="reply-toggle" onclick="toggleReplyBox('${n.id}')">回复…</button>
+        <button class="del-btn" onclick="deleteNote('${n.id}')">删除</button>
+      </div>
+      <div class="reply-box" id="rb-${n.id}" style="display:none;">
+        <input type="text" placeholder="回复${NAMES[n.author] || ''}…" onkeydown="if(event.key==='Enter')sendReply('${n.id}',this)">
+        <button onclick="sendReply('${n.id}', this.previousElementSibling)">发送</button>
+      </div>
+    </div>`).join("");
+}
+
+function toggleReplyBox(noteId, isFullId) {
+  const box = document.getElementById(isFullId ? noteId : "rb-" + noteId);
+  const show = box.style.display === "none";
+  box.style.display = show ? "flex" : "none";
+  if (show) box.querySelector("input").focus();
+}
+
+async function deleteNote(noteId) {
+  if (!confirm("删掉这条批注吗？（回复也会一起删掉）")) return;
+  await fetch(`/api/notes/${currentBook.id}/${noteId}`, { method: "DELETE" });
+  await loadNotes();
+  renderChapter();
+}
+
+async function deleteReply(noteId, replyId) {
+  if (!confirm("删掉这条回复吗？")) return;
+  await fetch(`/api/notes/${currentBook.id}/${noteId}/reply/${replyId}`, { method: "DELETE" });
+  await loadNotes();
+  renderNotes();
+}
+
+async function sendReply(noteId, input) {
+  const content = input.value.trim();
+  if (!content) return;
+  await fetch(`/api/notes/${currentBook.id}/${noteId}/reply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: identity, content }),
+  });
+  await loadNotes();
+  renderNotes();
+}
+
+function focusNote(noteId) {
+  if (window.innerWidth <= 768 && !notesOpen) toggleNotes();
+  const el = document.getElementById("note-" + noteId);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 1400);
 }
 
 async function submitNote() {
   if (!currentBook) return;
-  const author = document.getElementById("note-author").value;
   const content = document.getElementById("note-content").value.trim();
   if (!content) return;
-
   await fetch(`/api/notes/${currentBook.id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ author, chapterIdx: currentChapter, content }),
+    body: JSON.stringify({ author: identity, chapterIdx: currentChapter, quote: pendingQuote, content, color: pendingColor || null }),
   });
-
   document.getElementById("note-content").value = "";
-  loadNotes();
+  clearQuote();
+  setColor(document.querySelector(".color-dot.none"));
+  await loadNotes();
+  renderChapter();
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+// ── Import ───────────────────────────────────────────────────────────────
+async function importBook(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.getElementById("add-book-btn");
+  btn.textContent = "…"; btn.disabled = true;
+  try {
+    const book = await fetch("/api/books/upload?name=" + encodeURIComponent(file.name), {
+      method: "POST", body: file
+    }).then(r => r.json());
+    if (book.error) throw new Error(book.error);
+    allBooks.push(book);
+    openBook(book.id);
+  } catch (err) {
+    alert("导入失败: " + err.message);
+  } finally {
+    btn.textContent = "+"; btn.disabled = false;
+    input.value = "";
+  }
+}
 
+// ── Init ─────────────────────────────────────────────────────────────────
 loadBookList();
 </script>
 </body>
