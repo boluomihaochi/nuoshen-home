@@ -446,7 +446,7 @@
   /* ── clawd 桌宠 ── */
   #clawd {
     position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom));
-    width: 70px; height: 63px; z-index: 90; cursor: pointer;
+    width: 66px; height: 60px; z-index: 90; cursor: pointer;
     image-rendering: pixelated; user-select: none;
   }
   #clawd-say {
@@ -493,7 +493,7 @@
 
 <div id="sel-pop" onclick="quoteFromSelection()">✎ 写批注</div>
 
-<canvas id="clawd" width="20" height="18" onclick="clawdPoke()"></canvas>
+<canvas id="clawd" width="22" height="20" onclick="clawdPoke()"></canvas>
 <div id="clawd-say"></div>
 
 <div id="shell">
@@ -1342,45 +1342,33 @@ const clawdCx = clawdCv.getContext("2d");
 // Anthropic 星芒橙
 const CP = { O: "#d97757", B: "#2b2721", Z: "#a49c8f" };
 
-// 15×15 星芒（Claude logo 的像素版），画在 20×18 画布上
-const CLAWD_STAR = [
-  ".......O.......",
-  ".O.....O.....O.",
-  "..O....O....O..",
-  "...O...O...O...",
-  "....O..O..O....",
-  ".....OOOOO.....",
-  "..OOOOOOOOOOO..",
-  "OOOOOOOOOOOOOOO",
-  "..OOOOOOOOOOO..",
-  ".....OOOOO.....",
-  "....O..O..O....",
-  "...O...O...O...",
-  "..O....O....O..",
-  ".O.....O.....O.",
-  ".......O.......",
-];
+// 17×17 实心星芒（Claude logo 像素版）：粗臂直接长在中心上，算法生成
+function starPixel(x, y) {
+  if (x >= 7 && x <= 9) return true;                        // 竖臂
+  if (y >= 7 && y <= 9) return true;                        // 横臂
+  if (Math.abs(x - y) <= 1 && x >= 2 && x <= 14) return true;      // 主对角臂
+  if (Math.abs(x + y - 16) <= 1 && x >= 2 && x <= 14) return true; // 副对角臂
+  return false;
+}
 function clawdDraw(state) {
   const cx = clawdCx;
-  cx.clearRect(0, 0, 20, 18);
+  cx.clearRect(0, 0, 22, 20);
   const oy = state.bob ? 3 : 2;
   cx.fillStyle = CP.O;
-  CLAWD_STAR.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (row[x] === "O") cx.fillRect(x + 2, y + oy, 1, 1);
-    }
-  });
-  // 眼睛：中心块上两颗
+  for (let y = 0; y < 17; y++)
+    for (let x = 0; x < 17; x++)
+      if (starPixel(x, y)) cx.fillRect(x + 2, y + oy, 1, 1);
+  // 眼睛
   cx.fillStyle = CP.B;
   if (state.sleep || state.blink) {
-    cx.fillRect(6, oy + 7, 2, 1); cx.fillRect(11, oy + 7, 2, 1);
+    cx.fillRect(7, oy + 7, 2, 1); cx.fillRect(12, oy + 7, 2, 1);
   } else {
-    cx.fillRect(6, oy + 6, 2, 2); cx.fillRect(11, oy + 6, 2, 2);
+    cx.fillRect(7, oy + 6, 2, 2); cx.fillRect(12, oy + 6, 2, 2);
   }
   // 睡觉的 z
   if (state.sleep) {
     cx.fillStyle = CP.Z;
-    cx.fillRect(16, 0, 3, 1); cx.fillRect(17, 1, 1, 1); cx.fillRect(16, 2, 3, 1);
+    cx.fillRect(18, 0, 3, 1); cx.fillRect(19, 1, 1, 1); cx.fillRect(18, 2, 3, 1);
   }
 }
 
