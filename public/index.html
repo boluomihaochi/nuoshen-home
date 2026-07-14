@@ -1320,18 +1320,25 @@ async function importBook(input) {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
-(async function init() {
-  await loadBookList();
+(function route() {
   const h = location.hash.slice(1);
-  if (h === "memory") showMemory();
-  else if (h === "study") showStudy();
-  else if (h === "collection") showCollection();
-  else if (h === "tsnotes") showTsNotes();
-  else if (h.startsWith("read/")) {
-    const id = h.slice(5);
-    if (allBooks.find(b => b.id === id)) openBook(id);
-    else showShelf();
-  }
+  // 先同步切到目标视图，再异步填数据——避免书架闪现
+  if (h === "memory") { showMemory(); loadBookList(); return; }
+  if (h === "study") { showStudy(); loadBookList(); return; }
+  if (h === "collection") switchView("collection");
+  else if (h === "tsnotes") switchView("tsnotes");
+  else if (h.startsWith("read/")) switchView("reader");
+
+  (async () => {
+    await loadBookList();
+    if (h === "collection") showCollection();
+    else if (h === "tsnotes") showTsNotes();
+    else if (h.startsWith("read/")) {
+      const id = h.slice(5);
+      if (allBooks.find(b => b.id === id)) openBook(id);
+      else showShelf();
+    }
+  })();
 })();
 </script>
 </body>
