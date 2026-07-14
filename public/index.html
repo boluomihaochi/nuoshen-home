@@ -769,6 +769,8 @@ function switchView(name) {
   document.getElementById("bb-shelf").classList.toggle("active", name === "shelf");
   document.getElementById("bb-coll").classList.toggle("active", name === "collection");
   document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
+  // 视图状态写进 URL hash，刷新后停在原页面（reader 由 openBook 单独写 #read/<id>）
+  if (name !== "reader") history.replaceState(null, "", "#" + name);
   document.getElementById("nav-books").classList.toggle("active", name !== "study" && name !== "memory");
   document.getElementById("nav-study").classList.toggle("active", name === "study");
   document.getElementById("nav-memory").classList.toggle("active", name === "memory");
@@ -1086,6 +1088,7 @@ async function openBook(id) {
   await loadNotes();
   renderChapter();
   showReader();
+  history.replaceState(null, "", "#read/" + book.id);
 }
 
 function updateFinishBtn() {
@@ -1317,7 +1320,19 @@ async function importBook(input) {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
-loadBookList();
+(async function init() {
+  await loadBookList();
+  const h = location.hash.slice(1);
+  if (h === "memory") showMemory();
+  else if (h === "study") showStudy();
+  else if (h === "collection") showCollection();
+  else if (h === "tsnotes") showTsNotes();
+  else if (h.startsWith("read/")) {
+    const id = h.slice(5);
+    if (allBooks.find(b => b.id === id)) openBook(id);
+    else showShelf();
+  }
+})();
 </script>
 </body>
 </html>
