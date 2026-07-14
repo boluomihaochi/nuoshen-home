@@ -17,6 +17,26 @@ if (!fs.existsSync(NOTES_FILE)) fs.writeFileSync(NOTES_FILE, "{}");
 if (!fs.existsSync(BOOKS_META_FILE)) fs.writeFileSync(BOOKS_META_FILE, "[]");
 if (!fs.existsSync(PROGRESS_FILE)) fs.writeFileSync(PROGRESS_FILE, "{}");
 
+// ── OB dashboard proxy (回忆模块) ─────────────────────────────────────────────
+// 把 Ombre Brain 前端(localhost:8000)代理进小楼，"回忆"页同源 iframe 嵌入。
+// 必须放在 express.json() 之前，否则 POST 请求体会被提前消费掉。
+
+const http = require("http");
+const OB_PREFIXES = ["/dashboard", "/auth/", "/api/buckets", "/api/bucket/", "/api/search", "/api/network", "/api/config", "/api/breath-debug"];
+
+app.use((req, res, next) => {
+  if (!OB_PREFIXES.some((p) => req.path === p || req.path.startsWith(p))) return next();
+  const proxyReq = http.request(
+    { host: "127.0.0.1", port: 8000, path: req.originalUrl, method: req.method, headers: { ...req.headers, host: "127.0.0.1:8000" } },
+    (proxyRes) => {
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(res);
+    }
+  );
+  proxyReq.on("error", () => res.status(502).json({ error: "OB 后端没有响应" }));
+  req.pipe(proxyReq);
+});
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 

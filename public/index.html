@@ -497,9 +497,9 @@
     <div id="nav-items">
       <button class="nav-item active" id="nav-books" onclick="showShelf()">共读</button>
       <button class="nav-item" id="nav-study" onclick="showStudy()">学习</button>
+      <button class="nav-item" id="nav-memory" onclick="showMemory()">回忆</button>
       <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
       <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
-      <button class="nav-item disabled">回忆 <span class="nav-tag">敬请期待</span></button>
     </div>
   </nav>
 
@@ -595,6 +595,11 @@
       </div>
       <div id="tsn-books" style="display:flex;gap:8px;overflow-x:auto;padding:16px 34px 4px;flex-shrink:0;"></div>
       <div id="tsn-list"></div>
+    </div>
+
+    <!-- Memory (OB) view -->
+    <div id="view-memory" style="flex:1;display:none;overflow:hidden;">
+      <iframe id="memory-frame" style="width:100%;height:100%;border:none;background:var(--paper);"></iframe>
     </div>
 
     <!-- Study view -->
@@ -757,14 +762,16 @@ function switchView(name) {
   document.getElementById("view-collection").classList.toggle("show", name === "collection");
   document.getElementById("view-tsnotes").classList.toggle("show", name === "tsnotes");
   document.getElementById("view-study").classList.toggle("show", name === "study");
+  document.getElementById("view-memory").style.display = name === "memory" ? "block" : "none";
   document.getElementById("view-soon").classList.remove("show");
   document.getElementById("bottom-bar").style.display =
     (name === "shelf" || name === "collection" || name === "tsnotes") ? "flex" : "none";
   document.getElementById("bb-shelf").classList.toggle("active", name === "shelf");
   document.getElementById("bb-coll").classList.toggle("active", name === "collection");
   document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
-  document.getElementById("nav-books").classList.toggle("active", name !== "study");
+  document.getElementById("nav-books").classList.toggle("active", name !== "study" && name !== "memory");
   document.getElementById("nav-study").classList.toggle("active", name === "study");
+  document.getElementById("nav-memory").classList.toggle("active", name === "memory");
   if (window.innerWidth <= 768) closeAll();
 }
 function showShelf() {
@@ -834,6 +841,14 @@ async function renderCollection() {
       </div>`).join("");
     return `<div class="coll-ch-title">${esc(title)}</div>${cards}`;
   }).join("");
+}
+
+// ── 回忆 (OB前端) ─────────────────────────────────────────────────────────
+function showMemory() {
+  switchView("memory");
+  document.getElementById("mobile-title").textContent = "回忆";
+  const frame = document.getElementById("memory-frame");
+  if (!frame.src) frame.src = "/dashboard";
 }
 
 // ── 宝宝的笔记 ────────────────────────────────────────────────────────────
