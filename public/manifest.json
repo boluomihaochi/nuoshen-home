@@ -1,0 +1,14 @@
+{
+  "name": "小楼",
+  "short_name": "小楼",
+  "description": "小诺和听澍的家",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ed",
+  "theme_color": "#f1ede5",
+  "icons": [
+    { "src": "/icons/clawd-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/clawd-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/clawd-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
