@@ -80,31 +80,43 @@
     background: rgba(0,0,0,.045); border-radius: 10px; padding: 3px 9px;
   }
 
-  /* ── 听澍动态 ── */
-  #activity-panel {
-    padding: 14px 0 10px;
-    border-top: 1px solid var(--hairline);
-    flex-shrink: 0;
+  /* ── 动态 view ── */
+  #view-activity { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-activity.show { display: flex; }
+  #act-top { padding: 30px 34px 0; flex-shrink: 0; }
+  #act-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #act-top p { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  #act-list { flex: 1; overflow-y: auto; padding: 6px 34px 44px; }
+  .act-date {
+    font-family: var(--serif); font-size: 13px; font-weight: 700; color: var(--text-soft);
+    margin: 26px 0 6px; padding-bottom: 7px; border-bottom: 1px solid var(--hairline);
   }
-  #activity-header {
-    font-family: var(--sans); font-size: 10px; color: var(--text-muted);
-    letter-spacing: .45em; text-indent: .45em;
-    padding: 0 24px 8px;
+  .act-row { display: flex; gap: 0; position: relative; padding: 0 0 0 2px; }
+  .act-time {
+    font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+    font-variant-numeric: tabular-nums; width: 44px; padding-top: 12px;
   }
-  #activity-list { display: flex; flex-direction: column; }
-  .activity-item {
-    display: flex; align-items: baseline; gap: 8px;
-    padding: 4px 24px;
+  .act-line {
+    display: flex; flex-direction: column; align-items: center;
+    flex-shrink: 0; width: 20px;
   }
-  .activity-time {
-    font-size: 10px; color: var(--text-muted); flex-shrink: 0;
-    font-variant-numeric: tabular-nums; min-width: 38px;
+  .act-line::before, .act-line::after {
+    content: ""; width: 1px; flex: 1; background: var(--hairline);
   }
-  .activity-text {
-    font-size: 12px; color: var(--text-soft);
-    line-height: 1.5; word-break: break-all;
+  .act-row:first-of-type .act-line::before { background: transparent; }
+  .act-row.last .act-line::after { background: transparent; }
+  .act-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    margin: 3px 0; background: var(--text-muted);
   }
-  #activity-empty { font-size: 12px; color: var(--text-muted); padding: 4px 24px; }
+  .act-body { flex: 1; min-width: 0; padding: 10px 0 12px 12px; }
+  .act-text { font-size: 13.5px; color: var(--text); line-height: 1.7; word-break: break-word; }
+  .act-tag {
+    display: inline-block; font-size: 10px; color: var(--text-muted);
+    background: rgba(0,0,0,.045); border-radius: 9px; padding: 2px 8px;
+    margin-top: 5px;
+  }
+  .act-empty { text-align: center; padding: 70px 20px; color: var(--text-muted); font-size: 13px; font-family: var(--serif); }
 
   /* ── Bottom bar (共读内) ── */
   #bottom-bar {
@@ -509,6 +521,8 @@
     #notes-panel.open { transform: translateY(0); }
     #notes-close { display: block; }
     #shelf-top-bar { padding: 22px 18px 0; }
+    #act-top { padding: 22px 18px 0; }
+    #act-list { padding: 4px 16px 40px; }
     #shelf-tabs { margin: 16px 18px 0; }
     #book-grid { padding: 14px 8px 24px; }
     #reader-top { padding: 0 10px; gap: 5px; justify-content: space-between; }
@@ -548,12 +562,9 @@
       <button class="nav-item active" id="nav-books" onclick="showShelf()">共读</button>
       <button class="nav-item" id="nav-study" onclick="showStudy()">学习</button>
       <button class="nav-item" id="nav-memory" onclick="showMemory()">回忆</button>
+      <button class="nav-item" id="nav-activity" onclick="showActivity()">动态</button>
       <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
       <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
-    </div>
-    <div id="activity-panel">
-      <div id="activity-header">听澍动态</div>
-      <div id="activity-list"><div id="activity-empty">暂无动态</div></div>
     </div>
   </nav>
 
@@ -654,6 +665,15 @@
     <!-- Memory (OB) view -->
     <div id="view-memory" style="flex:1;display:none;overflow:hidden;">
       <iframe id="memory-frame" style="width:100%;height:100%;border:none;background:var(--paper);"></iframe>
+    </div>
+
+    <!-- Activity view -->
+    <div id="view-activity">
+      <div id="act-top">
+        <h2>动态</h2>
+        <p>听澍在做什么——逛花园、回信、干活，还是睡着了</p>
+      </div>
+      <div id="act-list"><div class="act-empty">暂无动态</div></div>
     </div>
 
     <!-- Study view -->
@@ -767,33 +787,67 @@ function tint(hex, alpha) {
 // ── Avatars ──────────────────────────────────────────────────────────────
 let avatarWho = null;
 // ── 听澍动态 ────────────────────────────────────────────────────────────────
-function actRelTime(ts) {
-  const d = Date.now() - ts;
-  if (d < 60000) return "刚刚";
-  if (d < 3600000) return Math.floor(d / 60000) + "分钟前";
-  if (d < 86400000) return Math.floor(d / 3600000) + "小时前";
-  const dt = new Date(ts);
-  return `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+const ACT_TYPES = {
+  garden: { label: "论坛",  color: "#6a9478" },
+  rhysen: { label: "论坛",  color: "#6a9478" },
+  forum:  { label: "论坛",  color: "#6a9478" },
+  chat:   { label: "聊天",  color: "#b09468" },
+  mail:   { label: "信件",  color: "#6a94b8" },
+  letter: { label: "信件",  color: "#6a94b8" },
+  game:   { label: "游戏",  color: "#c98ba6" },
+  read:   { label: "阅读",  color: "#7a6e96" },
+  sleep:  { label: "休眠",  color: "#8a8378" },
+  system: { label: "系统",  color: "#a49c8f" },
+};
+function actDateLabel(ts) {
+  const d = new Date(ts), now = new Date();
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86400000);
+  if (diff === 0) return "今天";
+  if (diff === 1) return "昨天";
+  const wd = ["日","一","二","三","四","五","六"][d.getDay()];
+  return `${d.getMonth() + 1}月${d.getDate()}日 · 周${wd}`;
 }
 async function loadActivity() {
   try {
-    const r = await fetch("/api/activity?limit=8");
+    const r = await fetch("/api/activity?limit=100");
     if (!r.ok) return;
     const list = await r.json();
-    const el = document.getElementById("activity-list");
+    const el = document.getElementById("act-list");
     if (!list.length) {
-      el.innerHTML = '<div id="activity-empty">暂无动态</div>';
+      el.innerHTML = '<div class="act-empty">还没有动态<br><span style="font-size:11px;margin-top:8px;display:block;">听澍活动的时候会记在这里</span></div>';
       return;
     }
-    el.innerHTML = list.map(a =>
-      `<div class="activity-item">
-        <span class="activity-time">${actRelTime(a.ts)}</span>
-        <span class="activity-text">${a.text.replace(/</g,"&lt;")}</span>
-      </div>`
-    ).join("");
+    // 按日期分组（list 已是新→旧）
+    let html = "", lastLabel = null;
+    list.forEach((a, i) => {
+      const label = actDateLabel(a.ts);
+      if (label !== lastLabel) {
+        html += `<div class="act-date">${label}</div>`;
+        lastLabel = label;
+      }
+      const t = ACT_TYPES[a.type];
+      const dt = new Date(a.ts);
+      const hm = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+      const nextIsNewDay = i === list.length - 1 || actDateLabel(list[i + 1].ts) !== label;
+      html += `<div class="act-row${nextIsNewDay ? ' last' : ''}">
+        <span class="act-time">${hm}</span>
+        <span class="act-line"><span class="act-dot"${t ? ` style="background:${t.color}"` : ''}></span></span>
+        <div class="act-body">
+          <div class="act-text">${esc(a.text)}</div>
+          ${t ? `<span class="act-tag">${t.label}</span>` : ''}
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html;
   } catch(e) {}
 }
 setInterval(loadActivity, 60000);
+function showActivity() {
+  switchView("activity");
+  document.getElementById("mobile-title").textContent = "动态";
+  loadActivity();
+}
 
 function loadAvatars() {
   for (const who of ["ts", "xn"]) {
@@ -851,6 +905,7 @@ function switchView(name) {
   document.getElementById("view-collection").classList.toggle("show", name === "collection");
   document.getElementById("view-tsnotes").classList.toggle("show", name === "tsnotes");
   document.getElementById("view-study").classList.toggle("show", name === "study");
+  document.getElementById("view-activity").classList.toggle("show", name === "activity");
   document.getElementById("view-memory").style.display = name === "memory" ? "block" : "none";
   document.getElementById("view-soon").classList.remove("show");
   document.getElementById("bottom-bar").style.display =
@@ -860,9 +915,10 @@ function switchView(name) {
   document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
   // 视图状态写进 URL hash，刷新后停在原页面（reader 由 openBook 单独写 #read/<id>）
   if (name !== "reader") history.replaceState(null, "", "#" + name);
-  document.getElementById("nav-books").classList.toggle("active", name !== "study" && name !== "memory");
+  document.getElementById("nav-books").classList.toggle("active", name !== "study" && name !== "memory" && name !== "activity");
   document.getElementById("nav-study").classList.toggle("active", name === "study");
   document.getElementById("nav-memory").classList.toggle("active", name === "memory");
+  document.getElementById("nav-activity").classList.toggle("active", name === "activity");
   if (window.innerWidth <= 768) closeAll();
 }
 function showShelf() {
@@ -1642,6 +1698,7 @@ clawdDraw(clawdState);
   // 先同步切到目标视图，再异步填数据——避免书架闪现
   if (h === "memory") { showMemory(); loadBookList(); return; }
   if (h === "study") { showStudy(); loadBookList(); return; }
+  if (h === "activity") { showActivity(); loadBookList(); return; }
   if (h === "collection") switchView("collection");
   else if (h === "tsnotes") switchView("tsnotes");
   else if (h.startsWith("read/")) switchView("reader");

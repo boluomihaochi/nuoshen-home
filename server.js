@@ -488,7 +488,7 @@ app.post("/api/activity", (req, res) => {
 });
 
 app.get("/api/activity", (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
   const list = readJson(ACTIVITY_FILE);
   res.json(list.slice(0, limit));
 });
