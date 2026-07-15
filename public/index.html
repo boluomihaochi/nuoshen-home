@@ -1149,13 +1149,16 @@ async function renderChapter(keepScroll) {
   const ch = await fetch(`/api/books/${currentBook.id}/chapter/${currentChapter}`).then(r => r.json());
   const chNotes = currentNotes.filter(n => n.chapterIdx === currentChapter && n.quote);
 
+  const highlighted = new Set();
   const paras = ch.content.trim().split(/\n+/).map(raw => {
     let html = esc(raw.trim());
     for (const n of chNotes) {
+      if (highlighted.has(n.id)) continue;
       const q = esc(n.quote.trim());
-      if (q && html.includes(q) && !html.includes(`data-note="${n.id}"`)) {
+      if (q && html.includes(q)) {
         const style = n.color ? ` style="background-color:${tint(n.color, 0.26)}"` : "";
         html = html.replace(q, `<mark class="hl ${CLS[n.author] || ''}" data-note="${n.id}"${style} onclick="focusNote('${n.id}')">${q}</mark>`);
+        highlighted.add(n.id);
       }
     }
     return `<p>${html}</p>`;
