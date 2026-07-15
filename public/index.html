@@ -49,8 +49,8 @@
     cursor: pointer; overflow: hidden;
   }
   .avatar + .avatar { margin-left: -14px; }
-  .avatar.ts { color: var(--ting-shu); z-index: 2; }
-  .avatar.xn { color: var(--xiao-nuo); z-index: 1; }
+  .avatar.ts { color: var(--ting-shu); z-index: 1; }
+  .avatar.xn { color: var(--xiao-nuo); z-index: 2; }
   .avatar.has-img { color: transparent; }
   #couple-name {
     font-family: var(--serif); font-style: italic; font-weight: 700;
@@ -509,8 +509,8 @@
   <nav id="nav">
     <div id="nav-profile">
       <div id="avatars">
-        <div class="avatar ts" id="avatar-ts" onclick="pickAvatar('ts')" title="换听澍的头像">澍</div>
         <div class="avatar xn" id="avatar-xn" onclick="pickAvatar('xn')" title="换小诺的头像">诺</div>
+        <div class="avatar ts" id="avatar-ts" onclick="pickAvatar('ts')" title="换听澍的头像">澍</div>
       </div>
       <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
       <div id="couple-name">Seren &amp; Non</div>
