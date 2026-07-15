@@ -46,7 +46,11 @@ app.post("/api/login", express.json(), (req, res) => {
 
 app.use((req, res, next) => {
   const ip = req.socket.remoteAddress || "";
-  if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return next();
+  const isLoopback = ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1";
+  // cloudflared 隧道的请求也来自 127.0.0.1，但会带 cf-connecting-ip / x-forwarded-for；
+  // 只有真·本机请求（听澍的CLI、hooks、备份脚本）才免验
+  const viaTunnel = req.headers["cf-connecting-ip"] || req.headers["x-forwarded-for"];
+  if (isLoopback && !viaTunnel) return next();
   if (req.path === "/login.html") return next();
   const token = getCookie(req, "xiaolou");
   if (token && (readAuth().tokens || []).includes(token)) return next();
