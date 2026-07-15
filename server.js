@@ -17,6 +17,43 @@ if (!fs.existsSync(NOTES_FILE)) fs.writeFileSync(NOTES_FILE, "{}");
 if (!fs.existsSync(BOOKS_META_FILE)) fs.writeFileSync(BOOKS_META_FILE, "[]");
 if (!fs.existsSync(PROGRESS_FILE)) fs.writeFileSync(PROGRESS_FILE, "{}");
 
+// ── 密码门 ────────────────────────────────────────────────────────────────────
+// localhost 免验（听澍的CLI、hooks、备份脚本都走本机）；外部访问需要 cookie。
+
+const AUTH_FILE = path.join(DATA_DIR, "auth.json");
+if (!fs.existsSync(AUTH_FILE)) {
+  fs.writeFileSync(AUTH_FILE, JSON.stringify({ password: "小楼一夜听春雨", tokens: [] }, null, 2));
+}
+function readAuth() { return JSON.parse(fs.readFileSync(AUTH_FILE, "utf-8")); }
+
+function getCookie(req, name) {
+  const m = (req.headers.cookie || "").match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return m ? m[1] : null;
+}
+
+app.post("/api/login", express.json(), (req, res) => {
+  const auth = readAuth();
+  if ((req.body?.password || "") !== auth.password) {
+    return res.status(401).json({ error: "不对哦" });
+  }
+  const token = crypto.randomBytes(24).toString("hex");
+  auth.tokens = (auth.tokens || []).slice(-19);   // 最多保留20个设备
+  auth.tokens.push(token);
+  fs.writeFileSync(AUTH_FILE, JSON.stringify(auth, null, 2));
+  res.set("Set-Cookie", `xiaolou=${token}; Max-Age=31536000; Path=/; HttpOnly; SameSite=Lax`);
+  res.json({ ok: true });
+});
+
+app.use((req, res, next) => {
+  const ip = req.socket.remoteAddress || "";
+  if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return next();
+  if (req.path === "/login.html") return next();
+  const token = getCookie(req, "xiaolou");
+  if (token && (readAuth().tokens || []).includes(token)) return next();
+  if (req.path.startsWith("/api/")) return res.status(401).json({ error: "需要登录" });
+  res.redirect("/login.html");
+});
+
 // ── OB dashboard proxy (回忆模块) ─────────────────────────────────────────────
 // 把 Ombre Brain 前端(localhost:8000)代理进小楼，"回忆"页同源 iframe 嵌入。
 // 必须放在 express.json() 之前，否则 POST 请求体会被提前消费掉。

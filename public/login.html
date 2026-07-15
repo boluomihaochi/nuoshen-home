@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小楼</title>
+<style>
+  :root {
+    --bg: #f6f3ed; --paper: #faf8f3; --border: #e5e0d5;
+    --text: #2b2721; --text-muted: #a49c8f; --accent: #b09468;
+    --serif: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "PingFang SC", sans-serif;
+  }
+  #card { text-align: center; padding: 24px; width: 100%; max-width: 340px; }
+  h1 { font-family: var(--serif); font-size: 30px; font-weight: 800; letter-spacing: .1em; }
+  #sub { font-size: 11px; color: var(--text-muted); margin: 12px 0 34px; letter-spacing: .2em; }
+  #pw {
+    width: 100%; padding: 12px 16px; font-size: 15px; text-align: center;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--paper); color: var(--text); outline: none;
+    font-family: inherit;
+  }
+  #pw:focus { border-color: var(--accent); }
+  #go {
+    margin-top: 14px; width: 100%; padding: 12px 0; font-size: 14px;
+    background: var(--text); color: var(--paper); border: none;
+    border-radius: 12px; cursor: pointer; letter-spacing: .3em; text-indent: .3em;
+  }
+  #msg { font-size: 12px; color: #b0574e; margin-top: 14px; min-height: 16px; }
+</style>
+</head>
+<body>
+<div id="card">
+  <h1>小 楼</h1>
+  <div id="sub">深巷明朝卖杏花</div>
+  <input type="password" id="pw" placeholder="上一句是？" autocomplete="current-password"
+    onkeydown="if(event.key==='Enter')login()">
+  <button id="go" onclick="login()">进门</button>
+  <div id="msg"></div>
+</div>
+<script>
+async function login() {
+  const pw = document.getElementById("pw").value;
+  if (!pw) return;
+  const r = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: pw }),
+  });
+  if (r.ok) location.href = "/";
+  else {
+    document.getElementById("msg").textContent = "不对哦，再想想 ᗜ﹃ᗜ.";
+    document.getElementById("pw").value = "";
+    document.getElementById("pw").focus();
+  }
+}
+document.getElementById("pw").focus();
+</script>
+</body>
+</html>
