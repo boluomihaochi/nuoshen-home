@@ -484,13 +484,13 @@ app.post("/api/activity", (req, res) => {
   const list = readJson(ACTIVITY_FILE);
   const entry = { id: crypto.randomUUID(), ts: Date.now(), text, type: type || "other" };
   list.unshift(entry);
-  if (list.length > 100) list.splice(100);
+  if (list.length > 2000) list.splice(2000);
   writeJson(ACTIVITY_FILE, list);
   res.json(entry);
 });
 
 app.get("/api/activity", (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  const limit = Math.min(parseInt(req.query.limit) || 20, 2000);
   const list = readJson(ACTIVITY_FILE);
   res.json(list.slice(0, limit));
 });
