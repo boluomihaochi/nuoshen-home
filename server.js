@@ -471,6 +471,28 @@ app.get("/api/clawd/status", (req, res) => {
   res.json(stale ? { state: "offline", ts: clawdStatus.ts } : clawdStatus);
 });
 
+// ���─ 听澍动态日志 ────────────────────────────────────────────────────────────────
+
+const ACTIVITY_FILE = path.join(DATA_DIR, "activity.json");
+if (!fs.existsSync(ACTIVITY_FILE)) fs.writeFileSync(ACTIVITY_FILE, "[]");
+
+app.post("/api/activity", (req, res) => {
+  const { text, type } = req.body || {};
+  if (!text) return res.status(400).json({ error: "text 必填" });
+  const list = readJson(ACTIVITY_FILE);
+  const entry = { id: crypto.randomUUID(), ts: Date.now(), text, type: type || "other" };
+  list.unshift(entry);
+  if (list.length > 100) list.splice(100);
+  writeJson(ACTIVITY_FILE, list);
+  res.json(entry);
+});
+
+app.get("/api/activity", (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+  const list = readJson(ACTIVITY_FILE);
+  res.json(list.slice(0, limit));
+});
+
 // ── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {

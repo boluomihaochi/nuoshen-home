@@ -80,6 +80,32 @@
     background: rgba(0,0,0,.045); border-radius: 10px; padding: 3px 9px;
   }
 
+  /* ── 听澍动态 ── */
+  #activity-panel {
+    padding: 14px 0 10px;
+    border-top: 1px solid var(--hairline);
+    flex-shrink: 0;
+  }
+  #activity-header {
+    font-family: var(--sans); font-size: 10px; color: var(--text-muted);
+    letter-spacing: .45em; text-indent: .45em;
+    padding: 0 24px 8px;
+  }
+  #activity-list { display: flex; flex-direction: column; }
+  .activity-item {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 4px 24px;
+  }
+  .activity-time {
+    font-size: 10px; color: var(--text-muted); flex-shrink: 0;
+    font-variant-numeric: tabular-nums; min-width: 38px;
+  }
+  .activity-text {
+    font-size: 12px; color: var(--text-soft);
+    line-height: 1.5; word-break: break-all;
+  }
+  #activity-empty { font-size: 12px; color: var(--text-muted); padding: 4px 24px; }
+
   /* ── Bottom bar (共读内) ── */
   #bottom-bar {
     display: flex; border-top: 1px solid var(--border); background: var(--nav-bg);
@@ -525,6 +551,10 @@
       <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
       <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
     </div>
+    <div id="activity-panel">
+      <div id="activity-header">听澍动态</div>
+      <div id="activity-list"><div id="activity-empty">暂无动态</div></div>
+    </div>
   </nav>
 
   <!-- Main -->
@@ -736,6 +766,35 @@ function tint(hex, alpha) {
 
 // ── Avatars ──────────────────────────────────────────────────────────────
 let avatarWho = null;
+// ── 听澍动态 ────────────────────────────────────────────────────────────────
+function actRelTime(ts) {
+  const d = Date.now() - ts;
+  if (d < 60000) return "刚刚";
+  if (d < 3600000) return Math.floor(d / 60000) + "分钟前";
+  if (d < 86400000) return Math.floor(d / 3600000) + "小时前";
+  const dt = new Date(ts);
+  return `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+}
+async function loadActivity() {
+  try {
+    const r = await fetch("/api/activity?limit=8");
+    if (!r.ok) return;
+    const list = await r.json();
+    const el = document.getElementById("activity-list");
+    if (!list.length) {
+      el.innerHTML = '<div id="activity-empty">暂无动态</div>';
+      return;
+    }
+    el.innerHTML = list.map(a =>
+      `<div class="activity-item">
+        <span class="activity-time">${actRelTime(a.ts)}</span>
+        <span class="activity-text">${a.text.replace(/</g,"&lt;")}</span>
+      </div>`
+    ).join("");
+  } catch(e) {}
+}
+setInterval(loadActivity, 60000);
+
 function loadAvatars() {
   for (const who of ["ts", "xn"]) {
     const url = `/api/avatar/${who}?t=${Date.now()}`;
@@ -765,6 +824,7 @@ async function uploadAvatar(input) {
   input.value = "";
 }
 loadAvatars();
+loadActivity();
 
 // ── Drawers ──────────────────────────────────────────────────────────────
 function toggleNav() {
