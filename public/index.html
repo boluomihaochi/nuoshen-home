@@ -80,6 +80,75 @@
     background: rgba(0,0,0,.045); border-radius: 10px; padding: 3px 9px;
   }
 
+  /* ── 回忆（聊天日历）view ── */
+  #view-recall { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-recall.show { display: flex; }
+  #recall-top { padding: 30px 34px 0; flex-shrink: 0; }
+  #recall-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #recall-top p { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  #cal-wrap { flex: 1; overflow-y: auto; padding: 20px 34px 40px; }
+  #cal-head {
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+    margin-bottom: 16px;
+  }
+  #cal-head button {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 4px 13px; cursor: pointer; font-size: 15px; color: var(--text);
+  }
+  #cal-head button:hover { background: var(--border); }
+  #cal-month { font-family: var(--serif); font-size: 17px; font-weight: 700; min-width: 130px; text-align: center; }
+  #cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    max-width: 480px; margin: 0 auto;
+  }
+  .cal-wd { text-align: center; font-size: 10px; color: var(--text-muted); padding: 4px 0; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: 10px; font-size: 13px; color: var(--text-muted); gap: 3px;
+    background: none; border: none; font-variant-numeric: tabular-nums;
+  }
+  .cal-day.has {
+    color: var(--text); background: var(--paper); border: 1px solid var(--border);
+    cursor: pointer; font-weight: 600;
+  }
+  .cal-day.has:hover { border-color: var(--accent); }
+  .cal-day.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .cal-day:not(.has) .cal-dot { visibility: hidden; }
+  #cal-count { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 18px; }
+
+  /* 单日对话 */
+  #recall-day-top {
+    height: 54px; padding: 0 20px; border-bottom: 1px solid var(--border);
+    display: none; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg);
+  }
+  #recall-day-title { flex: 1; font-family: var(--serif); font-size: 15px; font-weight: 700; }
+  #aside-toggle {
+    background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 5px 11px; font-size: 11px; color: var(--text-muted); cursor: pointer;
+  }
+  #aside-toggle.on { color: var(--ting-shu); border-color: var(--ting-shu); }
+  #recall-chat { flex: 1; overflow-y: auto; padding: 22px 26px 50px; display: none; background: var(--paper); }
+  .chat-row { display: flex; margin-bottom: 12px; }
+  .chat-row.xn { justify-content: flex-start; }
+  .chat-row.ts { justify-content: flex-end; }
+  .chat-bubble {
+    max-width: 72%; padding: 9px 13px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+  }
+  .chat-row.xn .chat-bubble { background: rgba(106,148,120,.13); border: 1px solid rgba(106,148,120,.25); border-top-left-radius: 4px; }
+  .chat-row.ts .chat-bubble { background: rgba(122,110,150,.12); border: 1px solid rgba(122,110,150,.24); border-top-right-radius: 4px; }
+  .chat-time { font-size: 9.5px; color: var(--text-muted); margin-top: 5px; }
+  .chat-row.ts .chat-time { text-align: right; }
+  .chat-aside {
+    text-align: center; font-size: 11.5px; color: var(--text-muted);
+    margin: 10px auto; max-width: 84%; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+  }
+  .chat-hour-mark {
+    text-align: center; font-size: 10px; color: var(--text-muted);
+    margin: 18px 0 10px; letter-spacing: .1em;
+  }
+
   /* ── 动态 view ── */
   #view-activity { flex: 1; display: none; flex-direction: column; overflow: hidden; }
   #view-activity.show { display: flex; }
@@ -523,6 +592,10 @@
     #shelf-top-bar { padding: 22px 18px 0; }
     #act-top { padding: 22px 18px 0; }
     #act-list { padding: 4px 16px 40px; }
+    #recall-top { padding: 22px 18px 0; }
+    #cal-wrap { padding: 16px 14px 36px; }
+    #recall-chat { padding: 16px 12px 44px; }
+    .chat-bubble { max-width: 82%; }
     #shelf-tabs { margin: 16px 18px 0; }
     #book-grid { padding: 14px 8px 24px; }
     #reader-top { padding: 0 10px; gap: 5px; justify-content: space-between; }
@@ -561,7 +634,8 @@
     <div id="nav-items">
       <button class="nav-item active" id="nav-books" onclick="showShelf()">共读</button>
       <button class="nav-item" id="nav-study" onclick="showStudy()">学习</button>
-      <button class="nav-item" id="nav-memory" onclick="showMemory()">回忆</button>
+      <button class="nav-item" id="nav-recall" onclick="showRecall()">回忆</button>
+      <button class="nav-item" id="nav-memory" onclick="showMemory()">记忆</button>
       <button class="nav-item" id="nav-activity" onclick="showActivity()">动态</button>
       <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
       <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
@@ -665,6 +739,32 @@
     <!-- Memory (OB) view -->
     <div id="view-memory" style="flex:1;display:none;overflow:hidden;">
       <iframe id="memory-frame" style="width:100%;height:100%;border:none;background:var(--paper);"></iframe>
+    </div>
+
+    <!-- Recall (聊天日历) view -->
+    <div id="view-recall">
+      <div id="recall-top">
+        <h2>回忆</h2>
+        <p>我们说过的每一句话——点亮的日子都有对话</p>
+      </div>
+      <div id="recall-day-top">
+        <button onclick="recallBackToCal()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          日历
+        </button>
+        <span id="recall-day-title"></span>
+        <button id="aside-toggle" onclick="toggleAsides()">显示旁白</button>
+      </div>
+      <div id="cal-wrap">
+        <div id="cal-head">
+          <button onclick="calShift(-1)">‹</button>
+          <span id="cal-month"></span>
+          <button onclick="calShift(1)">›</button>
+        </div>
+        <div id="cal-grid"></div>
+        <div id="cal-count"></div>
+      </div>
+      <div id="recall-chat"></div>
     </div>
 
     <!-- Activity view -->
@@ -786,6 +886,119 @@ function tint(hex, alpha) {
 
 // ── Avatars ──────────────────────────────────────────────────────────────
 let avatarWho = null;
+// ── 回忆（聊天日历）──────────────────────────────────────────────────────────
+let calDates = new Map();      // "YYYY-MM-DD" -> count
+let calYM = null;              // [year, month(0-11)]
+let recallShowAsides = false;
+let recallCurDate = null;
+
+async function showRecall() {
+  switchView("recall");
+  document.getElementById("mobile-title").textContent = "回忆";
+  recallBackToCal();
+  try {
+    const list = await fetch("/api/chatlog/dates").then(r => r.json());
+    calDates = new Map(list.map(d => [d.date, d.count]));
+    if (!calYM) {
+      const now = new Date();
+      calYM = [now.getFullYear(), now.getMonth()];
+    }
+    renderCal();
+  } catch (e) {}
+}
+
+function calShift(d) {
+  calYM[1] += d;
+  if (calYM[1] < 0) { calYM[1] = 11; calYM[0]--; }
+  if (calYM[1] > 11) { calYM[1] = 0; calYM[0]++; }
+  renderCal();
+}
+
+function renderCal() {
+  const [y, m] = calYM;
+  document.getElementById("cal-month").textContent = `${y}年${m + 1}月`;
+  const first = new Date(y, m, 1);
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayKey = (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })();
+  let html = ["日","一","二","三","四","五","六"].map(w => `<div class="cal-wd">${w}</div>`).join("");
+  for (let i = 0; i < first.getDay(); i++) html += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const has = calDates.has(key);
+    html += `<button class="cal-day${has ? " has" : ""}${key === todayKey ? " today" : ""}"
+      ${has ? `onclick="openRecallDay('${key}')"` : ""}>${d}<span class="cal-dot"></span></button>`;
+  }
+  document.getElementById("cal-grid").innerHTML = html;
+  const total = [...calDates.values()].reduce((a, b) => a + b, 0);
+  document.getElementById("cal-count").textContent = `一共 ${calDates.size} 天 · ${total} 条对话`;
+}
+
+async function openRecallDay(date) {
+  recallCurDate = date;
+  const list = await fetch(`/api/chatlog/${date}`).then(r => r.json());
+  document.getElementById("recall-top").style.display = "none";
+  document.getElementById("cal-wrap").style.display = "none";
+  document.getElementById("recall-day-top").style.display = "flex";
+  const d = new Date(date);
+  const wd = ["日","一","二","三","四","五","六"][d.getDay()];
+  document.getElementById("recall-day-title").textContent = `${d.getMonth() + 1}月${d.getDate()}日 · 周${wd}`;
+  document.getElementById("mobile-title").textContent = date;
+  const pane = document.getElementById("recall-chat");
+  pane.style.display = "block";
+  renderRecallChat(list);
+  history.replaceState(null, "", "#recall/" + date);
+}
+
+function renderRecallChat(list) {
+  const pane = document.getElementById("recall-chat");
+  pane._list = list || pane._list;
+  list = pane._list || [];
+  const shown = recallShowAsides ? list : list.filter(m => !m.aside);
+  if (!shown.length) {
+    pane.innerHTML = '<div class="coll-empty">这一天没有对话</div>';
+    return;
+  }
+  let html = "", lastHour = null;
+  for (const m of shown) {
+    const dt = new Date(m.ts + 8 * 3600000);
+    const hm = `${String(dt.getUTCHours()).padStart(2,'0')}:${String(dt.getUTCMinutes()).padStart(2,'0')}`;
+    const hour = dt.getUTCHours();
+    if (hour !== lastHour) {
+      html += `<div class="chat-hour-mark">${String(hour).padStart(2,'0')}:00</div>`;
+      lastHour = hour;
+    }
+    if (m.aside) {
+      html += `<div class="chat-aside">${esc(m.text)}</div>`;
+    } else {
+      html += `<div class="chat-row ${m.who}">
+        <div>
+          <div class="chat-bubble">${esc(m.text)}</div>
+          <div class="chat-time">${m.who === "xn" ? "小诺" : "听澍"} · ${hm}</div>
+        </div>
+      </div>`;
+    }
+  }
+  pane.innerHTML = html;
+  pane.scrollTop = 0;
+}
+
+function toggleAsides() {
+  recallShowAsides = !recallShowAsides;
+  document.getElementById("aside-toggle").classList.toggle("on", recallShowAsides);
+  document.getElementById("aside-toggle").textContent = recallShowAsides ? "隐藏旁白" : "显示旁白";
+  renderRecallChat();
+}
+
+function recallBackToCal() {
+  recallCurDate = null;
+  document.getElementById("recall-top").style.display = "block";
+  document.getElementById("cal-wrap").style.display = "block";
+  document.getElementById("recall-day-top").style.display = "none";
+  document.getElementById("recall-chat").style.display = "none";
+  document.getElementById("mobile-title").textContent = "回忆";
+  if (location.hash.startsWith("#recall/")) history.replaceState(null, "", "#recall");
+}
+
 // ── 听澍动态 ────────────────────────────────────────────────────────────────
 const ACT_TYPES = {
   garden: { label: "论坛",  color: "#6a9478" },
@@ -906,6 +1119,7 @@ function switchView(name) {
   document.getElementById("view-tsnotes").classList.toggle("show", name === "tsnotes");
   document.getElementById("view-study").classList.toggle("show", name === "study");
   document.getElementById("view-activity").classList.toggle("show", name === "activity");
+  document.getElementById("view-recall").classList.toggle("show", name === "recall");
   document.getElementById("view-memory").style.display = name === "memory" ? "block" : "none";
   document.getElementById("view-soon").classList.remove("show");
   document.getElementById("bottom-bar").style.display =
@@ -915,10 +1129,11 @@ function switchView(name) {
   document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
   // 视图状态写进 URL hash，刷新后停在原页面（reader 由 openBook 单独写 #read/<id>）
   if (name !== "reader") history.replaceState(null, "", "#" + name);
-  document.getElementById("nav-books").classList.toggle("active", name !== "study" && name !== "memory" && name !== "activity");
+  document.getElementById("nav-books").classList.toggle("active", !["study","memory","activity","recall"].includes(name));
   document.getElementById("nav-study").classList.toggle("active", name === "study");
   document.getElementById("nav-memory").classList.toggle("active", name === "memory");
   document.getElementById("nav-activity").classList.toggle("active", name === "activity");
+  document.getElementById("nav-recall").classList.toggle("active", name === "recall");
   if (window.innerWidth <= 768) closeAll();
 }
 function showShelf() {
@@ -1699,6 +1914,12 @@ clawdDraw(clawdState);
   if (h === "memory") { showMemory(); loadBookList(); return; }
   if (h === "study") { showStudy(); loadBookList(); return; }
   if (h === "activity") { showActivity(); loadBookList(); return; }
+  if (h === "recall" || h.startsWith("recall/")) {
+    const date = h.startsWith("recall/") ? h.slice(7) : null;
+    showRecall().then(() => { if (date && calDates.has(date)) openRecallDay(date); });
+    loadBookList();
+    return;
+  }
   if (h === "collection") switchView("collection");
   else if (h === "tsnotes") switchView("tsnotes");
   else if (h.startsWith("read/")) switchView("reader");

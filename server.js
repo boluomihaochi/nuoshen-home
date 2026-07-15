@@ -493,6 +493,33 @@ app.get("/api/activity", (req, res) => {
   res.json(list.slice(0, limit));
 });
 
+// ── 聊天记录（回忆日历）─────────────────────────────────────────────────────────
+const chatlog = require("./chatlog");
+
+app.get("/api/chatlog/dates", (req, res) => {
+  try {
+    const out = [];
+    for (const [date, list] of chatlog.byDate()) out.push({ date, count: list.length });
+    out.sort((a, b) => a.date.localeCompare(b.date));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/chatlog/search", (req, res) => {
+  const q = (req.query.q || "").trim();
+  if (!q) return res.status(400).json({ error: "q 必填" });
+  try {
+    res.json(chatlog.search(q, Math.min(parseInt(req.query.limit) || 50, 200)));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/chatlog/:date", (req, res) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(req.params.date)) return res.status(400).json({ error: "日期格式 YYYY-MM-DD" });
+  try {
+    res.json(chatlog.byDate().get(req.params.date) || []);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
