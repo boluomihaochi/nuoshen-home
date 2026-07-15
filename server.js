@@ -435,6 +435,8 @@ app.post("/api/avatar/:who", express.raw({ type: "*/*", limit: "10mb" }), (req, 
 app.get("/api/avatar/:who", (req, res) => {
   const f = findAvatar(req.params.who);
   if (!f) return res.status(404).end();
+  // 前端用 ?v=版本号 控制更新，这里可以放心长缓存
+  res.set("Cache-Control", "public, max-age=604800");
   res.sendFile(f);
 });
 

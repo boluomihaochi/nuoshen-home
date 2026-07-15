@@ -1064,10 +1064,18 @@ function showActivity() {
 
 function loadAvatars() {
   for (const who of ["ts", "xn"]) {
-    const url = `/api/avatar/${who}?t=${Date.now()}`;
+    // 版本号只在换头像时变，浏览器可以放心用缓存，不用每次重新下载
+    const v = localStorage.getItem("avatar-v-" + who) || "0";
+    const url = `/api/avatar/${who}?v=${v}`;
+    const el = document.getElementById("avatar-" + who);
+    if (localStorage.getItem("avatar-has-" + who)) {
+      el.style.backgroundImage = `url('${url}')`;
+      el.classList.add("has-img");
+      continue;
+    }
     fetch(url, { method: "HEAD" }).then(r => {
-      const el = document.getElementById("avatar-" + who);
       if (r.ok) {
+        localStorage.setItem("avatar-has-" + who, "1");
         el.style.backgroundImage = `url('${url}')`;
         el.classList.add("has-img");
       }
@@ -1086,6 +1094,9 @@ async function uploadAvatar(input) {
     const e = await r.json().catch(() => ({}));
     alert("上传失败: " + (e.error || r.status));
   } else {
+    // 换了新头像才更新版本号，旧缓存作废
+    localStorage.setItem("avatar-v-" + avatarWho, String(Date.now()));
+    localStorage.setItem("avatar-has-" + avatarWho, "1");
     loadAvatars();
   }
   input.value = "";
