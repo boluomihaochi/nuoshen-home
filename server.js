@@ -44,6 +44,14 @@ app.post("/api/login", express.json(), (req, res) => {
   res.json({ ok: true });
 });
 
+// PWA/SW 要求安全上下文：隧道来的明文请求一律跳 https（本机请求无此头，不受影响）
+app.use((req, res, next) => {
+  if (req.headers["x-forwarded-proto"] === "http") {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   const ip = req.socket.remoteAddress || "";
   const isLoopback = ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1";
@@ -52,6 +60,10 @@ app.use((req, res, next) => {
   const viaTunnel = req.headers["cf-connecting-ip"] || req.headers["x-forwarded-for"];
   if (isLoopback && !viaTunnel) return next();
   if (req.path === "/login.html") return next();
+  // PWA 安装：Chrome 抓 manifest/图标时不带 cookie，需免验，否则桌面图标退化成字母
+  if (req.path === "/manifest.json" || req.path === "/sw.js" || req.path === "/offline.html" || req.path.startsWith("/icons/")) return next();
+  // MCP 端点用 Bearer token 自己认证
+  if (req.path === "/mcp" || req.path.startsWith("/mcp/")) return next();
   const token = getCookie(req, "xiaolou");
   if (token && (readAuth().tokens || []).includes(token)) return next();
   if (req.path.startsWith("/api/")) return res.status(401).json({ error: "需要登录" });
@@ -79,6 +91,17 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "10mb" }));
+
+// OAuth 端点已移除——MCP 无认证直接开放（与 OB 一致）
+
+// sw.js 和入口页禁止缓存，防止新版本上线后 SW 更新链自锁
+app.use((req, res, next) => {
+  if (req.path === '/sw.js' || req.path === '/' || req.path === '/index.html') {
+    res.setHeader('Cache-Control', 'no-cache');
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 function readJson(file) {
@@ -536,6 +559,153 @@ app.get("/api/activity", (req, res) => {
   res.json(list.slice(0, limit));
 });
 
+// ── 留言板 ────────────────────────────────────────────────────────────────────
+// 按天一块板：data/board.json = { "YYYY-MM-DD": [item…] }
+// item = { id, ts, author: "xiao_nuo"|"ting_shu", kind: "note"|"photo"|"sticker",
+//          text?, emoji?, photoId? }
+
+const BOARD_FILE = path.join(DATA_DIR, "board.json");
+const BOARD_PHOTOS_DIR = path.join(DATA_DIR, "board-photos");
+fs.mkdirSync(BOARD_PHOTOS_DIR, { recursive: true });
+if (!fs.existsSync(BOARD_FILE)) fs.writeFileSync(BOARD_FILE, "{}");
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+app.get("/api/board/dates", (req, res) => {
+  const all = readJson(BOARD_FILE);
+  const out = Object.entries(all)
+    .filter(([, items]) => items.length)
+    .map(([date, items]) => ({ date, count: items.length }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  res.json(out);
+});
+
+app.get("/api/board/photo/:id", (req, res) => {
+  const id = req.params.id.replace(/[^a-f0-9-]/g, "");
+  for (const ext of ["jpg", "png", "webp", "gif"]) {
+    const f = path.join(BOARD_PHOTOS_DIR, `${id}.${ext}`);
+    if (fs.existsSync(f)) {
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      return res.sendFile(f);
+    }
+  }
+  res.status(404).end();
+});
+
+app.post("/api/board/photo", express.raw({ type: "*/*", limit: "15mb" }), (req, res) => {
+  const ext = sniffImageExt(req.body);
+  if (!ext) return res.status(400).json({ error: "不是能识别的图片格式（jpg/png/webp/gif）" });
+  const id = crypto.randomUUID();
+  fs.writeFileSync(path.join(BOARD_PHOTOS_DIR, `${id}.${ext}`), req.body);
+  res.json({ id });
+});
+
+app.get("/api/board/:date", (req, res) => {
+  if (!DATE_RE.test(req.params.date)) return res.status(400).json({ error: "日期格式 YYYY-MM-DD" });
+  const all = readJson(BOARD_FILE);
+  res.json(all[req.params.date] || []);
+});
+
+app.post("/api/board/:date", (req, res) => {
+  if (!DATE_RE.test(req.params.date)) return res.status(400).json({ error: "日期格式 YYYY-MM-DD" });
+  const { author, kind, text, emoji, photoId } = req.body || {};
+  if (!["xiao_nuo", "ting_shu"].includes(author)) return res.status(400).json({ error: "author 必须是 xiao_nuo/ting_shu" });
+  if (kind === "note" && !text) return res.status(400).json({ error: "便签要有字" });
+  if (kind === "sticker" && !emoji) return res.status(400).json({ error: "贴纸要有emoji" });
+  if (kind === "photo" && !photoId) return res.status(400).json({ error: "照片要先传 /api/board/photo" });
+  if (!["note", "photo", "sticker"].includes(kind)) return res.status(400).json({ error: "kind 必须是 note/photo/sticker" });
+
+  const all = readJson(BOARD_FILE);
+  if (!all[req.params.date]) all[req.params.date] = [];
+  const item = {
+    id: crypto.randomUUID(),
+    ts: Date.now(),
+    author, kind,
+    ...(kind === "note" ? { text: String(text).slice(0, 500) } : {}),
+    ...(kind === "sticker" ? { emoji: String(emoji).slice(0, 8) } : {}),
+    ...(kind === "photo" ? { photoId, text: text ? String(text).slice(0, 100) : "" } : {}),
+  };
+  all[req.params.date].push(item);
+  writeJson(BOARD_FILE, all);
+  res.json(item);
+});
+
+app.delete("/api/board/:date/:id", (req, res) => {
+  const all = readJson(BOARD_FILE);
+  const items = all[req.params.date] || [];
+  const idx = items.findIndex((i) => i.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: "not found" });
+  const [removed] = items.splice(idx, 1);
+  if (removed.kind === "photo" && removed.photoId) {
+    for (const ext of ["jpg", "png", "webp", "gif"]) {
+      const f = path.join(BOARD_PHOTOS_DIR, `${removed.photoId}.${ext}`);
+      if (fs.existsSync(f)) fs.unlinkSync(f);
+    }
+  }
+  writeJson(BOARD_FILE, all);
+  res.json({ ok: true });
+});
+
+// ── 相册（听澍用Stackchan拍的照片，也收小诺传的）────────────────────────────────
+// data/album.json = [ { id, ts, caption, by: "ting_shu"|"xiao_nuo", ext } ]（新→旧）
+
+const ALBUM_FILE = path.join(DATA_DIR, "album.json");
+const ALBUM_DIR = path.join(DATA_DIR, "album-photos");
+fs.mkdirSync(ALBUM_DIR, { recursive: true });
+if (!fs.existsSync(ALBUM_FILE)) fs.writeFileSync(ALBUM_FILE, "[]");
+
+app.post("/api/album", express.raw({ type: "*/*", limit: "15mb" }), (req, res) => {
+  const ext = sniffImageExt(req.body);
+  if (!ext) return res.status(400).json({ error: "不是能识别的图片格式（jpg/png/webp/gif）" });
+  const by = req.query.by === "xiao_nuo" ? "xiao_nuo" : "ting_shu";
+  const entry = {
+    id: crypto.randomUUID(),
+    ts: req.query.ts ? Number(req.query.ts) : Date.now(),
+    caption: String(req.query.caption || "").slice(0, 200),
+    by, ext,
+  };
+  fs.writeFileSync(path.join(ALBUM_DIR, `${entry.id}.${ext}`), req.body);
+  const list = readJson(ALBUM_FILE);
+  list.unshift(entry);
+  list.sort((a, b) => b.ts - a.ts);
+  writeJson(ALBUM_FILE, list);
+  res.json(entry);
+});
+
+app.get("/api/album", (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 500, 2000);
+  res.json(readJson(ALBUM_FILE).slice(0, limit));
+});
+
+app.get("/api/album/:id/file", (req, res) => {
+  const entry = readJson(ALBUM_FILE).find((p) => p.id === req.params.id);
+  if (!entry) return res.status(404).end();
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.sendFile(path.join(ALBUM_DIR, `${entry.id}.${entry.ext}`));
+});
+
+app.patch("/api/album/:id", (req, res) => {
+  const list = readJson(ALBUM_FILE);
+  const entry = list.find((p) => p.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: "not found" });
+  if (req.body.caption !== undefined) entry.caption = String(req.body.caption).slice(0, 200);
+  writeJson(ALBUM_FILE, list);
+  res.json(entry);
+});
+
+app.delete("/api/album/:id", (req, res) => {
+  let list = readJson(ALBUM_FILE);
+  const entry = list.find((p) => p.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: "not found" });
+  list = list.filter((p) => p.id !== req.params.id);
+  writeJson(ALBUM_FILE, list);
+  fs.rmSync(path.join(ALBUM_DIR, `${entry.id}.${entry.ext}`), { force: true });
+  res.json({ ok: true });
+});
+
+// ── MCP 服务（供 claude.ai chat 端接入）──────────────────────────────────────────
+const { createMcpRouter } = require("./xiaolou-mcp");
+
 // ── 聊天记录（回忆日历）─────────────────────────────────────────────────────────
 const chatlog = require("./chatlog");
 
@@ -562,6 +732,13 @@ app.get("/api/chatlog/:date", (req, res) => {
     res.json(chatlog.byDate().get(req.params.date) || []);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
+// ── 小票（每日清单+任务积分）──────────────────────────────────────────────────
+const receipt = require("./receipt");
+app.use("/api/receipt", receipt.router);
+receipt.startTick();
+
+app.use("/mcp", createMcpRouter({ chatlog, dataDir: DATA_DIR }));
 
 // ── Start ────────────────────────────────────────────────────────────────────
 

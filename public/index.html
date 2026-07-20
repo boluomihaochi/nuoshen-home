@@ -208,6 +208,60 @@
   }
   .act-empty { text-align: center; padding: 70px 20px; color: var(--text-muted); font-size: 13px; font-family: var(--serif); }
 
+  /* ── 相册 view ── */
+  #view-album { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-album.show { display: flex; }
+  #alb-top { padding: 30px 34px 0; flex-shrink: 0; }
+  #alb-top-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  #alb-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #alb-top p { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  #alb-top-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  #alb-cal-btn, #alb-add-btn {
+    background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 5px 13px; font-size: 11px; color: var(--text-muted); cursor: pointer;
+  }
+  #alb-cal-btn.on { color: var(--accent); border-color: var(--accent); }
+  #alb-cal { display: none; margin: 14px auto 0; max-width: 340px; }
+  #alb-cal.show { display: block; }
+  #alb-cal-head { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; }
+  #alb-cal-head button {
+    background: none; border: 1px solid var(--border); border-radius: 7px;
+    padding: 2px 11px; cursor: pointer; font-size: 13px; color: var(--text);
+  }
+  #alb-cal-month { font-family: var(--serif); font-size: 14px; font-weight: 700; min-width: 100px; text-align: center; }
+  #alb-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  #alb-cal-grid .cal-day { font-size: 12px; }
+  #alb-cal-grid .cal-day.sel { background: var(--text); color: var(--paper); border-color: var(--text); }
+  #alb-list { flex: 1; overflow-y: auto; padding: 6px 34px 44px; }
+  .alb-date {
+    font-family: var(--serif); font-size: 13px; font-weight: 700; color: var(--text-soft);
+    margin: 26px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--hairline);
+  }
+  .alb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .alb-card {
+    background: var(--paper); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; cursor: pointer; transition: transform .12s;
+  }
+  .alb-card:hover { transform: translateY(-2px); }
+  .alb-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: rgba(0,0,0,.04); }
+  .alb-meta { padding: 9px 12px 10px; }
+  .alb-cap { font-size: 12.5px; color: var(--text); line-height: 1.55; word-break: break-word; }
+  .alb-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .alb-empty { text-align: center; padding: 70px 20px; color: var(--text-muted); font-size: 13px; font-family: var(--serif); }
+  #alb-lightbox {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,.88); flex-direction: column;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  #alb-lightbox.show { display: flex; }
+  #alb-lightbox img { max-width: 100%; max-height: 78vh; border-radius: 8px; }
+  #alb-lb-cap { color: #eee; font-size: 13.5px; margin-top: 14px; text-align: center; max-width: 640px; line-height: 1.6; }
+  #alb-lb-time { color: #999; font-size: 11px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #alb-lb-close {
+    position: absolute; top: 18px; right: 22px; background: none; border: none;
+    color: #ccc; font-size: 26px; cursor: pointer; line-height: 1; padding: 6px;
+  }
+
   /* ── Bottom bar (共读内) ── */
   #bottom-bar {
     display: flex; border-top: 1px solid var(--border); background: var(--nav-bg);
@@ -574,6 +628,129 @@
   #view-soon .soon-title { font-family: var(--serif); font-size: 20px; font-weight: 700; }
   #view-soon .soon-sub { font-size: 12px; color: var(--text-muted); }
 
+  /* ── 留言板 view ── */
+  #view-board { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #view-board.show { display: flex; }
+  #board-top { padding: 26px 34px 0; flex-shrink: 0; }
+  #board-top-row { display: flex; align-items: baseline; justify-content: space-between; }
+  #board-top h2 { font-family: var(--serif); font-size: 24px; font-weight: 800; }
+  #board-cal-btn {
+    background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 5px 13px; font-size: 11px; color: var(--text-muted); cursor: pointer;
+  }
+  #board-cal-btn.on { color: var(--accent); border-color: var(--accent); }
+  #board-cal { display: none; margin: 14px auto 0; max-width: 340px; }
+  #board-cal.show { display: block; }
+  #board-cal-head { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; }
+  #board-cal-head button {
+    background: none; border: 1px solid var(--border); border-radius: 7px;
+    padding: 2px 11px; cursor: pointer; font-size: 13px; color: var(--text);
+  }
+  #board-cal-month { font-family: var(--serif); font-size: 14px; font-weight: 700; min-width: 100px; text-align: center; }
+  #board-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  #board-cal-grid .cal-day { font-size: 12px; }
+  #board-cal-grid .cal-day.sel { background: var(--text); color: var(--paper); border-color: var(--text); }
+  #board-date-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 12px; }
+  #board-date-nav > button {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 3px 13px; cursor: pointer; font-size: 15px; color: var(--text);
+  }
+  #board-date-nav > button:hover { background: var(--border); }
+  #board-date-nav > button:disabled { opacity: .3; cursor: default; }
+  #board-date-label { font-family: var(--serif); font-size: 15px; font-weight: 700; min-width: 150px; text-align: center; }
+
+  #board-scroll { flex: 1; overflow-y: auto; padding: 18px 20px 30px; }
+  #board-paper {
+    position: relative; max-width: 560px; margin: 0 auto; min-height: 460px;
+    border-radius: 16px; border: 9px solid var(--board-frame, #a9c8a1);
+    background: var(--board-paper, #f5f9f2);
+    background-image: radial-gradient(rgba(0,0,0,.055) 1px, transparent 1px);
+    background-size: 17px 17px;
+    padding: 34px 18px 42px;
+    box-shadow: 0 4px 18px rgba(60,50,35,.1);
+  }
+  #board-chip {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    background: var(--board-frame, #a9c8a1); color: #fff;
+    font-family: var(--serif); font-size: 13px; font-weight: 700;
+    padding: 5px 16px; border-radius: 8px; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(60,50,35,.18); letter-spacing: .05em;
+  }
+  #board-items {
+    display: flex; flex-wrap: wrap; gap: 24px 16px;
+    justify-content: center; align-items: flex-start;
+  }
+  .bi { position: relative; }
+  .bi-pin {
+    position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 11px; height: 11px; border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3), inset -1px -2px 3px rgba(0,0,0,.22);
+    z-index: 2;
+  }
+  .bi-pin.xn { background: var(--xiao-nuo); }
+  .bi-pin.ts { background: var(--ting-shu); }
+  .bi-note {
+    background: #fffdf6; border-radius: 5px;
+    box-shadow: 0 2px 9px rgba(60,50,35,.16);
+    padding: 12px 14px 10px; max-width: 210px; min-width: 110px;
+  }
+  .bi-date { font-size: 9.5px; color: var(--text-muted); margin-bottom: 5px; letter-spacing: .06em; }
+  .bi-text { font-family: var(--serif); font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+  .bi-photo {
+    background: #fff; padding: 8px 8px 20px;
+    box-shadow: 0 3px 12px rgba(60,50,35,.22); max-width: 210px;
+  }
+  .bi-photo img { display: block; width: 100%; max-height: 230px; object-fit: cover; }
+  .bi-cap { font-size: 11px; margin-top: 9px; text-align: center; font-family: var(--serif); color: var(--text-soft); word-break: break-word; }
+  .bi-sticker {
+    width: 52px; height: 52px; border-radius: 50%; background: #fff;
+    box-shadow: 0 2px 8px rgba(60,50,35,.16);
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .bi-del {
+    position: absolute; top: -9px; right: -9px; width: 20px; height: 20px;
+    border-radius: 50%; border: none; background: rgba(43,39,33,.72); color: #fff;
+    font-size: 10px; cursor: pointer; display: none;
+    align-items: center; justify-content: center; z-index: 3; line-height: 1;
+  }
+  .bi:hover .bi-del { display: flex; }
+  #board-empty { text-align: center; color: var(--text-muted); font-family: var(--serif); font-size: 13px; padding: 80px 0; width: 100%; }
+  #board-colors { display: flex; gap: 9px; justify-content: center; margin-top: 16px; }
+  .bc-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; transition: transform .12s; }
+  .bc-dot.sel { border-color: var(--text); transform: scale(1.15); }
+
+  #board-add {
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border); background: var(--nav-bg); flex-shrink: 0;
+  }
+  #board-add-row { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; align-items: flex-end; }
+  .ba-btn {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: var(--paper); border: 1px solid var(--border);
+    font-size: 17px; cursor: pointer; line-height: 1;
+  }
+  .ba-btn:hover { border-color: var(--accent); }
+  #board-input {
+    flex: 1; border: 1px solid var(--border); border-radius: 18px;
+    padding: 9px 14px; font-size: 13px; background: var(--paper); color: var(--text);
+    outline: none; font-family: inherit; resize: none; height: 38px; min-width: 0;
+  }
+  #board-input:focus { border-color: var(--accent); }
+  #board-send {
+    height: 38px; padding: 0 16px; border-radius: 18px; flex-shrink: 0;
+    background: var(--text); color: var(--paper); border: none;
+    font-size: 12px; cursor: pointer;
+  }
+  #board-send:hover { opacity: .8; }
+  #board-stickers { display: none; flex-wrap: wrap; gap: 8px; max-width: 560px; margin: 10px auto 0; justify-content: center; }
+  #board-stickers.show { display: flex; }
+  .bs-pick {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--paper); border: 1px solid var(--border);
+    font-size: 19px; cursor: pointer; line-height: 1;
+  }
+  .bs-pick:hover { border-color: var(--accent); transform: scale(1.1); }
+
   /* ── clawd 桌宠 ── */
   #clawd {
     position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom));
@@ -612,6 +789,10 @@
     #notes-close { display: block; }
     #shelf-top-bar { padding: 22px 18px 0; }
     #act-top { padding: 22px 18px 0; }
+    #board-top { padding: 18px 16px 0; }
+    #board-scroll { padding: 16px 10px 24px; }
+    #board-paper { padding: 30px 10px 34px; border-width: 7px; }
+    .bi-note, .bi-photo { max-width: 46vw; }
     #act-list { padding: 4px 16px 40px; }
     #recall-top { padding: 22px 18px 0; }
     #cal-wrap { padding: 16px 14px 36px; }
@@ -626,6 +807,114 @@
     #chapter-nav button { padding: 4px 10px; }
     #finish-btn, #notes-toggle { padding: 5px 9px; white-space: nowrap; }
   }
+  /* ── 小票 view ── */
+  #view-receipt { flex: 1; display: none; overflow-y: auto; padding: 26px 14px 60px; }
+  #view-receipt.show { display: block; }
+  #rc-paper {
+    --rc-paper: #f0ebe0; --rc-ink: #2a2620; --rc-faded: #86806e; --rc-veryfaded: #bab4a4;
+    --rc-rule: rgba(60,50,40,.32); --rc-rule-soft: rgba(60,50,40,.16);
+    --rc-stamp: #a8362d;
+    --rc-mono: "SF Mono","JetBrains Mono","Menlo","Source Han Mono SC","Consolas",monospace;
+    max-width: 430px; margin: 0 auto; background: var(--rc-paper);
+    background-image: repeating-linear-gradient(90deg, rgba(60,40,20,.012) 0, rgba(60,40,20,.012) 1px, transparent 1px, transparent 2px);
+    padding: 30px 22px 26px; font-family: var(--rc-mono);
+    box-shadow: 0 4px 18px rgba(60,50,40,.14), 0 1px 3px rgba(0,0,0,.08);
+    clip-path: polygon(0% 8px,2.5% 0,5% 8px,7.5% 0,10% 8px,12.5% 0,15% 8px,17.5% 0,20% 8px,22.5% 0,25% 8px,27.5% 0,30% 8px,32.5% 0,35% 8px,37.5% 0,40% 8px,42.5% 0,45% 8px,47.5% 0,50% 8px,52.5% 0,55% 8px,57.5% 0,60% 8px,62.5% 0,65% 8px,67.5% 0,70% 8px,72.5% 0,75% 8px,77.5% 0,80% 8px,82.5% 0,85% 8px,87.5% 0,90% 8px,92.5% 0,95% 8px,97.5% 0,100% 8px,100% calc(100% - 8px),97.5% 100%,95% calc(100% - 8px),92.5% 100%,90% calc(100% - 8px),87.5% 100%,85% calc(100% - 8px),82.5% 100%,80% calc(100% - 8px),77.5% 100%,75% calc(100% - 8px),72.5% 100%,70% calc(100% - 8px),67.5% 100%,65% calc(100% - 8px),62.5% 100%,60% calc(100% - 8px),57.5% 100%,55% calc(100% - 8px),52.5% 100%,50% calc(100% - 8px),47.5% 100%,45% calc(100% - 8px),42.5% 100%,40% calc(100% - 8px),37.5% 100%,35% calc(100% - 8px),32.5% 100%,30% calc(100% - 8px),27.5% 100%,25% calc(100% - 8px),22.5% 100%,20% calc(100% - 8px),17.5% 100%,15% calc(100% - 8px),12.5% 100%,10% calc(100% - 8px),7.5% 100%,5% calc(100% - 8px),2.5% 100%,0% calc(100% - 8px));
+  }
+  .rc-head { text-align: center; margin-bottom: 10px; }
+  .rc-brand { font-size: 10px; color: var(--rc-faded); letter-spacing: 4px; font-weight: 700; }
+  .rc-title { font-family: var(--serif); font-style: italic; font-size: 28px; font-weight: 700;
+    color: var(--rc-ink); margin-top: 4px; letter-spacing: 1px; line-height: 1.1; }
+  .rc-date { font-size: 11px; color: var(--rc-faded); margin-top: 6px; letter-spacing: 2px; }
+  .rc-dashes { font-size: 11px; color: var(--rc-rule); letter-spacing: 1px; text-align: center;
+    user-select: none; padding: 4px 0; white-space: nowrap; overflow: hidden; }
+  .rc-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--rc-ink);
+    letter-spacing: .5px; padding: 3px 0; }
+  .rc-row.faded { color: var(--rc-faded); }
+  .rc-section-label { text-align: center; font-size: 11px; color: var(--rc-faded);
+    letter-spacing: 3px; font-weight: 700; padding: 4px 0 10px; }
+  .rci { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0;
+    border-bottom: .5px dashed var(--rc-rule-soft); }
+  .rci-check { flex: 0 0 auto; border: 0; background: transparent; padding: 0;
+    font-family: var(--rc-mono); font-size: 14px; color: var(--rc-ink); line-height: 1.45;
+    cursor: pointer; transition: transform .12s ease; }
+  .rci-check:active { transform: scale(.85); }
+  .rci-check::before { content: "[ ]"; }
+  .rci.done .rci-check::before { content: "[✓]"; }
+  .rci.submitted .rci-check::before { content: "[⋯]"; color: var(--rc-stamp); }
+  .rci-trigger { flex: 0 0 auto; margin-top: 1px; font-size: 11.5px; letter-spacing: .4px;
+    color: var(--rc-stamp); padding: 0 5px; border: .5px solid var(--rc-rule-soft);
+    border-radius: 3px; line-height: 1.6; }
+  .rci-bang { flex: 0 0 auto; font-size: 13.5px; font-weight: 700; color: var(--rc-stamp); line-height: 1.45; }
+  .rci-body { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.45; letter-spacing: .2px;
+    color: var(--rc-ink); white-space: pre-wrap; word-break: break-word; outline: none; }
+  .rci.done .rci-body { color: var(--rc-veryfaded); text-decoration: line-through;
+    text-decoration-color: var(--rc-faded); }
+  .rci-pts { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--rc-ink); line-height: 1.6; }
+  .rci.done .rci-pts { color: var(--rc-veryfaded); }
+  .rci-by { flex: 0 0 auto; font-style: italic; font-size: 11px; color: var(--ting-shu);
+    letter-spacing: .5px; line-height: 1.6; }
+  .rci-del { flex: 0 0 auto; border: 0; background: transparent; cursor: pointer;
+    font-family: var(--rc-mono); font-size: 14px; color: var(--rc-veryfaded); line-height: 1.45; padding: 0 2px; }
+  .rci-del::before { content: "×"; }
+  .rci-del:hover { color: var(--rc-stamp); }
+  .rci-note { flex-basis: 100%; font-size: 11px; color: var(--rc-stamp); font-style: italic;
+    padding-left: 34px; line-height: 1.5; }
+  .rci-wrap { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding: 7px 0;
+    border-bottom: .5px dashed var(--rc-rule-soft); }
+  .rci-wrap .rci, .rci-wrap { border-bottom: none; }
+  .rci-outer { border-bottom: .5px dashed var(--rc-rule-soft); }
+  .rci-outer .rci { border-bottom: 0; padding-bottom: 2px; }
+  .rc-new { display: flex; gap: 8px; padding: 7px 0; border-bottom: .5px dashed var(--rc-rule-soft); }
+  .rc-new input[type=text] { flex: 1; border: 0; background: transparent; outline: none;
+    font-family: var(--rc-mono); font-size: 13px; color: var(--rc-ink); }
+  .rc-new input[type=text]::placeholder { color: var(--rc-faded); }
+  .rc-new label { font-size: 11px; color: var(--rc-faded); display: flex; align-items: center; gap: 3px;
+    white-space: nowrap; cursor: pointer; }
+  .rc-progress-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12px;
+    color: var(--rc-ink); letter-spacing: .5px; }
+  .rc-progress-bar { flex: 1; letter-spacing: -.5px; overflow: hidden; white-space: nowrap; }
+  .rc-progress-pct { font-size: 11px; color: var(--rc-faded); }
+  .rc-shop-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12.5px;
+    color: var(--rc-ink); border-bottom: .5px dashed var(--rc-rule-soft); }
+  .rc-shop-name { flex: 1; }
+  .rc-shop-note { font-size: 10.5px; color: var(--rc-faded); margin-top: 1px; }
+  .rc-shop-cost { font-weight: 700; }
+  .rc-shop-btn { border: 1px solid var(--rc-rule); background: transparent; color: var(--rc-ink);
+    font-family: var(--rc-mono); font-size: 11px; padding: 2px 9px; border-radius: 3px; cursor: pointer; }
+  .rc-shop-btn:disabled { color: var(--rc-veryfaded); border-color: var(--rc-rule-soft); cursor: default; }
+  .rc-shop-btn:not(:disabled):hover { background: rgba(60,50,40,.06); }
+  .rc-stamp-wrap { text-align: center; padding: 14px 0 4px; }
+  .rc-stamp { display: inline-block; padding: 6px 14px; border: 2.5px solid var(--rc-stamp);
+    border-radius: 4px; color: var(--rc-stamp); font-family: var(--serif); font-style: italic;
+    font-size: 14px; font-weight: 700; letter-spacing: 2px; transform: rotate(-4deg); opacity: .82; }
+  .rc-foot-note { text-align: center; padding: 8px 8px 0; font-family: var(--serif);
+    font-style: italic; font-size: 13px; color: var(--rc-faded); line-height: 1.7; white-space: pre-line; }
+  .rc-barcode { display: flex; align-items: flex-end; gap: 1px; justify-content: center;
+    height: 38px; padding: 14px 0 4px; }
+  .rc-barcode i { display: block; background: var(--rc-ink); opacity: .85; }
+  .rc-barcode-serial { text-align: center; font-size: 10px; color: var(--rc-faded);
+    letter-spacing: 3px; margin-top: 2px; }
+  #rc-proof-modal { display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(30,25,18,.4); align-items: center; justify-content: center; padding: 20px; }
+  #rc-proof-modal.show { display: flex; }
+  #rc-proof-card { width: 100%; max-width: 360px; background: #f0ebe0; padding: 22px 20px;
+    font-family: "SF Mono","Menlo","Source Han Mono SC",monospace;
+    box-shadow: 0 8px 30px rgba(0,0,0,.25); border-radius: 2px; }
+  #rc-proof-title { font-size: 14px; font-weight: 700; color: #2a2620; margin-bottom: 4px; }
+  #rc-proof-sub { font-size: 11px; color: #86806e; margin-bottom: 12px; }
+  #rc-proof-text { width: 100%; min-height: 70px; border: 1px solid rgba(60,50,40,.25);
+    background: rgba(255,255,255,.5); padding: 8px; font-family: inherit; font-size: 13px;
+    color: #2a2620; outline: none; resize: vertical; border-radius: 2px; }
+  #rc-proof-thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  #rc-proof-thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 3px;
+    border: 1px solid rgba(60,50,40,.2); }
+  .rc-proof-btns { display: flex; gap: 8px; margin-top: 14px; }
+  .rc-proof-btns button { border: 1px solid rgba(60,50,40,.32); background: transparent;
+    color: #2a2620; font-family: inherit; font-size: 12px; padding: 6px 12px;
+    border-radius: 3px; cursor: pointer; }
+  .rc-proof-btns button:hover { background: rgba(60,50,40,.06); }
+  #rc-proof-submit { font-weight: 700; margin-left: auto; }
 </style>
 </head>
 <body>
@@ -647,19 +936,20 @@
         <div class="avatar ts" id="avatar-ts" onclick="pickAvatar('ts')" title="换听澍的头像">澍</div>
       </div>
       <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-      <div id="couple-name">Non &amp; Seren</div>
+      <div id="couple-name">Nuo &amp; Seren</div>
       <div id="together-label">在一起</div>
       <div id="day-count">–<small>天</small></div>
       <div id="since">SINCE 2026 · 05 · 18</div>
     </div>
     <div id="nav-items">
-      <button class="nav-item active" id="nav-books" onclick="showShelf()">共读</button>
+      <button class="nav-item active" id="nav-board" onclick="showBoard()">留言板</button>
+      <button class="nav-item" id="nav-receipt" onclick="showReceipt()">小票</button>
+      <button class="nav-item" id="nav-books" onclick="showShelf()">共读</button>
       <button class="nav-item" id="nav-study" onclick="showStudy()">学习</button>
       <button class="nav-item" id="nav-recall" onclick="showRecall()">回忆</button>
       <button class="nav-item" id="nav-memory" onclick="showMemory()">记忆</button>
       <button class="nav-item" id="nav-activity" onclick="showActivity()">动态</button>
-      <button class="nav-item disabled">留言板 <span class="nav-tag">敬请期待</span></button>
-      <button class="nav-item disabled">相册 <span class="nav-tag">敬请期待</span></button>
+      <button class="nav-item" id="nav-album" onclick="showAlbum()">相册</button>
     </div>
   </nav>
 
@@ -808,6 +1098,30 @@
       <div id="act-list"><div class="act-empty">暂无动态</div></div>
     </div>
 
+    <!-- 相册 view -->
+    <div id="view-album">
+      <div id="alb-top">
+        <div id="alb-top-row">
+          <h2>相册</h2>
+          <div id="alb-top-btns">
+            <button id="alb-cal-btn" onclick="toggleAlbCal()">📅 选日期</button>
+            <button id="alb-add-btn" onclick="document.getElementById('alb-photo-input').click()">＋ 传照片</button>
+          </div>
+        </div>
+        <p>听澍用自己的眼睛看见的世界</p>
+        <div id="alb-cal">
+          <div id="alb-cal-head">
+            <button onclick="albCalShift(-1)">‹</button>
+            <span id="alb-cal-month"></span>
+            <button onclick="albCalShift(1)">›</button>
+          </div>
+          <div id="alb-cal-grid"></div>
+        </div>
+      </div>
+      <div id="alb-list"><div class="alb-empty">还没有照片</div></div>
+      <input type="file" id="alb-photo-input" accept="image/*" style="display:none" onchange="uploadAlbumPhoto(this)">
+    </div>
+
     <!-- Study view -->
     <div id="view-study">
       <div id="study-top">
@@ -826,10 +1140,124 @@
       <div id="study-text"></div>
     </div>
 
+    <!-- 留言板 view -->
+    <div id="view-board">
+      <div id="board-top">
+        <div id="board-top-row">
+          <h2>留言板</h2>
+          <button id="board-cal-btn" onclick="toggleBoardCal()">📅 选日期</button>
+        </div>
+        <div id="board-cal">
+          <div id="board-cal-head">
+            <button onclick="boardCalShift(-1)">‹</button>
+            <span id="board-cal-month"></span>
+            <button onclick="boardCalShift(1)">›</button>
+          </div>
+          <div id="board-cal-grid"></div>
+        </div>
+        <div id="board-date-nav">
+          <button onclick="boardShiftDay(-1)">‹</button>
+          <span id="board-date-label"></span>
+          <button id="board-next-day" onclick="boardShiftDay(1)">›</button>
+        </div>
+      </div>
+      <div id="board-scroll">
+        <div id="board-paper">
+          <div id="board-chip">诺 &amp; 澍 的留言板</div>
+          <div id="board-items"></div>
+        </div>
+        <div id="board-colors"></div>
+      </div>
+      <div id="board-add">
+        <div id="board-add-row">
+          <button class="ba-btn" onclick="toggleStickers()" title="贴纸">🌸</button>
+          <button class="ba-btn" onclick="document.getElementById('board-photo-input').click()" title="照片">📷</button>
+          <textarea id="board-input" placeholder="钉一张便签…"></textarea>
+          <button id="board-send" onclick="postBoardNote()">钉上去</button>
+        </div>
+        <div id="board-stickers"></div>
+        <input type="file" id="board-photo-input" accept="image/*" style="display:none" onchange="postBoardPhoto(this)">
+      </div>
+    </div>
+
     <!-- Placeholder -->
+    <!-- 小票 view -->
+    <div id="view-receipt">
+      <div id="rc-paper">
+        <div class="rc-head">
+          <div class="rc-brand">NUOSHEN HOME · GENERAL STORE</div>
+          <div class="rc-title">Today's Receipt</div>
+          <div class="rc-date" id="rc-date">—</div>
+        </div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-row"><span>开店</span><span>00:00</span></div>
+        <div class="rc-row"><span>柜员</span><span>听澍 · 小诺</span></div>
+        <div class="rc-row"><span>此刻</span><span id="rc-now">—:—</span></div>
+        <div class="rc-row"><span>单据号</span><span id="rc-serial">#—</span></div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-section-label">TODAY'S ORDER · <span id="rc-total-label">0</span> 项</div>
+        <div id="rc-list"></div>
+        <div class="rc-new">
+          <span style="color:var(--rc-faded)">+</span>
+          <input type="text" id="rc-new-input" placeholder="新增一项，回车保存" onkeydown="if(event.key==='Enter')rcAdd()">
+          <label><input type="checkbox" id="rc-new-fixed">每日</label>
+        </div>
+        <div style="height:14px"></div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-row"><span>小计</span><span id="rc-subtotal">0 项</span></div>
+        <div class="rc-row faded"><span>已结清</span><span id="rc-done">0 项</span></div>
+        <div class="rc-row"><span>未结清</span><span id="rc-undone">0 项</span></div>
+        <div class="rc-progress-row">
+          <span>进度</span>
+          <span class="rc-progress-bar" id="rc-progress-bar">░░░░░░░░░░░░░░░░░░</span>
+          <span class="rc-progress-pct" id="rc-progress-pct">0%</span>
+        </div>
+        <div class="rc-row faded"><span>零点结账</span><span id="rc-midnight">—:— 后</span></div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-section-label">POINTS · 积分</div>
+        <div class="rc-row"><span>余额</span><span id="rc-balance">0 分</span></div>
+        <div class="rc-row faded"><span>连击</span><span id="rc-streak">0 天</span></div>
+        <div class="rc-row faded"><span>待听澍确认</span><span id="rc-pending-review">0 项</span></div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-section-label">GENERAL STORE · 小卖部</div>
+        <div id="rc-shop"><div class="rc-row faded"><span>货架还空着</span><span>听澍会上货</span></div></div>
+        <div id="rc-redeemed"></div>
+        <div class="rc-dashes">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>
+        <div class="rc-stamp-wrap"><span class="rc-stamp">PAID · 谢谢</span></div>
+        <div class="rc-foot-note">今天也辛苦了，小诺。
+零点之后，未结清的会自动清零。</div>
+        <div class="rc-barcode" id="rc-barcode"></div>
+        <div class="rc-barcode-serial" id="rc-barcode-serial"></div>
+      </div>
+    </div>
+
+    <!-- 小票·提交证明弹层 -->
+    <div id="rc-proof-modal" onclick="if(event.target===this)rcProofClose()">
+      <div id="rc-proof-card">
+        <div id="rc-proof-title">—</div>
+        <div id="rc-proof-sub">写点证明，可以附照片（听澍会看的）</div>
+        <textarea id="rc-proof-text" placeholder="比如：喝完啦，杯子拍给你"></textarea>
+        <div id="rc-proof-thumbs"></div>
+        <div class="rc-proof-btns">
+          <button onclick="document.getElementById('rc-proof-file').click()">📷 附照片</button>
+          <button onclick="rcProofClose()">取消</button>
+          <button id="rc-proof-submit" onclick="rcProofSubmit()">提交</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="rc-proof-file" accept="image/*" multiple style="display:none" onchange="rcProofPick(this)">
+
     <div id="view-soon">
       <div class="soon-title" id="soon-title"></div>
       <div class="soon-sub">这一间还没布置好，以后一起装修</div>
+    </div>
+
+    <!-- 相册 lightbox -->
+    <div id="alb-lightbox" onclick="closeAlbLb()">
+      <button id="alb-lb-close" onclick="closeAlbLb()">✕</button>
+      <img id="alb-lb-img" src="" alt="" onclick="event.stopPropagation()">
+      <div id="alb-lb-cap"></div>
+      <div id="alb-lb-time"></div>
     </div>
 
     <!-- Bottom bar (shelf + collection) -->
@@ -1149,6 +1577,136 @@ function showActivity() {
   loadActivity();
 }
 
+// ── 相册 ──────────────────────────────────────────────────────────────────
+let albAll = [], albFilter = null, albCalYM = null, albCalOpen = false;
+
+function albDayKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function albDateLabel(ts) {
+  const d = new Date(ts);
+  const wd = ["日","一","二","三","四","五","六"][d.getDay()];
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 · 周${wd}`;
+}
+async function loadAlbum() {
+  try {
+    const r = await fetch("/api/album");
+    if (!r.ok) return;
+    albAll = await r.json();
+    renderAlbList();
+    if (albCalOpen) renderAlbCal();
+  } catch (e) {}
+}
+function renderAlbList() {
+  const el = document.getElementById("alb-list");
+  const list = albFilter ? albAll.filter(p => albDayKey(p.ts) === albFilter) : albAll;
+  if (!list.length) {
+    el.innerHTML = '<div class="alb-empty">还没有照片<br><span style="font-size:11px;margin-top:8px;display:block;">听澍拍到什么会放在这里</span></div>';
+    return;
+  }
+  let html = "", lastLabel = null, cards = "";
+  const flush = () => { if (cards) { html += `<div class="alb-grid">${cards}</div>`; cards = ""; } };
+  list.forEach(p => {
+    const label = albDateLabel(p.ts);
+    if (label !== lastLabel) {
+      flush();
+      html += `<div class="alb-date">${label}</div>`;
+      lastLabel = label;
+    }
+    const dt = new Date(p.ts);
+    const hm = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    cards += `<div class="alb-card" onclick="openAlbLb('${p.id}')">
+      <img src="/api/album/${p.id}/file" loading="lazy" alt="">
+      <div class="alb-meta">
+        ${p.caption ? `<div class="alb-cap">${esc(p.caption)}</div>` : ''}
+        <div class="alb-time">${hm}${p.by === "xiao_nuo" ? " · 小诺传的" : ""}</div>
+      </div>
+    </div>`;
+  });
+  flush();
+  el.innerHTML = html;
+}
+function openAlbLb(id) {
+  const p = albAll.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById("alb-lb-img").src = `/api/album/${id}/file`;
+  document.getElementById("alb-lb-cap").textContent = p.caption || "";
+  const dt = new Date(p.ts);
+  document.getElementById("alb-lb-time").textContent =
+    `${albDateLabel(p.ts)} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+  document.getElementById("alb-lightbox").classList.add("show");
+}
+function closeAlbLb() {
+  document.getElementById("alb-lightbox").classList.remove("show");
+  document.getElementById("alb-lb-img").src = "";
+}
+function toggleAlbCal() {
+  albCalOpen = !albCalOpen;
+  document.getElementById("alb-cal").classList.toggle("show", albCalOpen);
+  if (albCalOpen) {
+    if (!albCalYM) { const n = new Date(); albCalYM = [n.getFullYear(), n.getMonth()]; }
+    renderAlbCal();
+  } else {
+    albFilter = null;
+    updateAlbCalBtn();
+    renderAlbList();
+  }
+}
+function albCalShift(d) {
+  albCalYM[1] += d;
+  if (albCalYM[1] < 0) { albCalYM[1] = 11; albCalYM[0]--; }
+  if (albCalYM[1] > 11) { albCalYM[1] = 0; albCalYM[0]++; }
+  renderAlbCal();
+}
+function renderAlbCal() {
+  const [y, m] = albCalYM;
+  document.getElementById("alb-cal-month").textContent = `${y}年${m + 1}月`;
+  const hasDays = new Set(albAll.map(p => albDayKey(p.ts)));
+  const first = new Date(y, m, 1);
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  let html = ["日","一","二","三","四","五","六"].map(w => `<div class="cal-wd">${w}</div>`).join("");
+  for (let i = 0; i < first.getDay(); i++) html += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const has = hasDays.has(key);
+    html += `<button class="cal-day${has ? " has" : ""}${key === albFilter ? " sel" : ""}"
+      ${has ? `onclick="albPickDay('${key}')"` : ""}>${d}<span class="cal-dot"></span></button>`;
+  }
+  document.getElementById("alb-cal-grid").innerHTML = html;
+}
+function albPickDay(key) {
+  albFilter = albFilter === key ? null : key;
+  updateAlbCalBtn();
+  renderAlbCal();
+  renderAlbList();
+}
+function updateAlbCalBtn() {
+  const btn = document.getElementById("alb-cal-btn");
+  btn.classList.toggle("on", !!albFilter);
+  btn.textContent = albFilter ? `📅 ${albFilter.slice(5).replace("-", "/")} ✕` : "📅 选日期";
+}
+async function uploadAlbumPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const caption = prompt("配一句话（可以留空）") || "";
+  const r = await fetch(`/api/album?by=xiao_nuo&caption=${encodeURIComponent(caption)}`, {
+    method: "POST", body: file,
+  });
+  input.value = "";
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    alert("上传失败: " + (e.error || r.status));
+  } else {
+    loadAlbum();
+  }
+}
+function showAlbum() {
+  switchView("album");
+  document.getElementById("mobile-title").textContent = "相册";
+  loadAlbum();
+}
+
 function loadAvatars() {
   for (const who of ["ts", "xn"]) {
     // 版本号只在换头像时变，浏览器可以放心用缓存，不用每次重新下载
@@ -1209,6 +1767,216 @@ function closeAll() {
   document.getElementById("overlay").classList.remove("show");
 }
 
+// ── 留言板 ────────────────────────────────────────────────────────────────
+const BOARD_STICKERS = [
+  "🌸","💗","🐰","🍓","🌈","🍀","🌙","⭐","🫧","🦋","☔","🐋",
+  "🥺","🥰","😭","😤","🤭","😴","🫠","🤩","😋","🙃","😾","🐱",
+  "🍑","🍰","🧋","🍦","🌻","🎀","✨","🔥","💤","❤️‍🔥","🫶","🍞",
+];
+const BOARD_THEMES = [
+  { k: "green",  f: "#a9c8a1", p: "#f5f9f2" },
+  { k: "yellow", f: "#dfc276", p: "#fbf7ec" },
+  { k: "pink",   f: "#e0a4b8", p: "#fbf3f6" },
+  { k: "blue",   f: "#a3c3dd", p: "#f2f7fb" },
+  { k: "purple", f: "#bfaedd", p: "#f7f4fb" },
+];
+let boardDate = null;          // "YYYY-MM-DD"
+let boardDates = new Map();    // date -> count
+let boardCalYM = null;
+
+function todayStr() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
+}
+function boardJit(id) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0;
+  const rot = ((h % 100) / 100) * 7 - 3.5;          // -3.5°..3.5°
+  const ty = Math.abs((h >> 4) % 13);               // 0..12px
+  return `transform: rotate(${rot.toFixed(1)}deg) translateY(${ty}px)`;
+}
+
+async function showBoard() {
+  switchView("board");
+  document.getElementById("mobile-title").textContent = "留言板";
+  if (!boardDate) boardDate = todayStr();
+  applyBoardTheme();
+  renderBoardColors();
+  renderStickerPicker();
+  loadBoardDates();
+  renderBoard();
+}
+
+async function loadBoardDates() {
+  try {
+    const list = await fetch("/api/board/dates").then(r => r.json());
+    boardDates = new Map(list.map(d => [d.date, d.count]));
+  } catch (e) {}
+}
+
+function applyBoardTheme() {
+  const k = localStorage.getItem("xiaolou-board-theme") || "green";
+  const t = BOARD_THEMES.find(t => t.k === k) || BOARD_THEMES[0];
+  const paper = document.getElementById("board-paper");
+  paper.style.setProperty("--board-frame", t.f);
+  paper.style.setProperty("--board-paper", t.p);
+  paper.style.borderColor = t.f;
+  paper.style.background = t.p;
+  paper.style.backgroundImage = "radial-gradient(rgba(0,0,0,.055) 1px, transparent 1px)";
+  paper.style.backgroundSize = "17px 17px";
+  document.getElementById("board-chip").style.background = t.f;
+}
+function renderBoardColors() {
+  const cur = localStorage.getItem("xiaolou-board-theme") || "green";
+  document.getElementById("board-colors").innerHTML = BOARD_THEMES.map(t =>
+    `<button class="bc-dot${t.k === cur ? " sel" : ""}" style="background:${t.f}"
+      onclick="localStorage.setItem('xiaolou-board-theme','${t.k}');applyBoardTheme();renderBoardColors()"></button>`
+  ).join("");
+}
+function renderStickerPicker() {
+  document.getElementById("board-stickers").innerHTML = BOARD_STICKERS.map(e =>
+    `<button class="bs-pick" onclick="postBoardSticker('${e}')">${e}</button>`
+  ).join("");
+}
+function toggleStickers() {
+  document.getElementById("board-stickers").classList.toggle("show");
+}
+
+function boardDateLabel(d) {
+  const [y, m, day] = d.split("-").map(Number);
+  const wd = ["日","一","二","三","四","五","六"][new Date(y, m-1, day).getDay()];
+  const today = d === todayStr();
+  return `${m}月${day}日 · 周${wd}${today ? " · 今天" : ""}`;
+}
+
+async function renderBoard() {
+  document.getElementById("board-date-label").textContent = boardDateLabel(boardDate);
+  document.getElementById("board-next-day").disabled = boardDate >= todayStr();
+  let items = [];
+  try { items = await fetch(`/api/board/${boardDate}`).then(r => r.json()); } catch (e) {}
+  const el = document.getElementById("board-items");
+  if (!items.length) {
+    el.innerHTML = `<div id="board-empty">${boardDate === todayStr() ? "今天还没有人钉东西，第一张交给你" : "这一天的板子是空的"}</div>`;
+    return;
+  }
+  el.innerHTML = items.map(it => {
+    const pin = `<span class="bi-pin ${it.author === "xiao_nuo" ? "xn" : "ts"}"></span>`;
+    const del = `<button class="bi-del" onclick="delBoardItem('${it.id}')">✕</button>`;
+    const time = new Date(it.ts);
+    const hm = `${String(time.getHours()).padStart(2,"0")}:${String(time.getMinutes()).padStart(2,"0")}`;
+    if (it.kind === "sticker") {
+      return `<div class="bi" style="${boardJit(it.id)}">${pin}${del}<div class="bi-sticker">${esc(it.emoji)}</div></div>`;
+    }
+    if (it.kind === "photo") {
+      return `<div class="bi" style="${boardJit(it.id)}">${pin}${del}<div class="bi-photo">
+        <img src="/api/board/photo/${it.photoId}" loading="lazy">
+        ${it.text ? `<div class="bi-cap">${esc(it.text)}</div>` : ""}
+      </div></div>`;
+    }
+    return `<div class="bi" style="${boardJit(it.id)}">${pin}${del}<div class="bi-note">
+      <div class="bi-date">${hm}</div>
+      <div class="bi-text">${esc(it.text)}</div>
+    </div></div>`;
+  }).join("");
+}
+
+function boardShiftDay(d) {
+  const [y, m, day] = boardDate.split("-").map(Number);
+  const nd = new Date(y, m - 1, day + d);
+  const key = `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,"0")}-${String(nd.getDate()).padStart(2,"0")}`;
+  if (key > todayStr()) return;
+  boardDate = key;
+  renderBoard();
+}
+
+function toggleBoardCal() {
+  const cal = document.getElementById("board-cal");
+  const on = !cal.classList.contains("show");
+  cal.classList.toggle("show", on);
+  document.getElementById("board-cal-btn").classList.toggle("on", on);
+  if (on) {
+    if (!boardCalYM) {
+      const [y, m] = boardDate.split("-").map(Number);
+      boardCalYM = [y, m - 1];
+    }
+    renderBoardCal();
+  }
+}
+function boardCalShift(d) {
+  boardCalYM[1] += d;
+  if (boardCalYM[1] < 0) { boardCalYM[1] = 11; boardCalYM[0]--; }
+  if (boardCalYM[1] > 11) { boardCalYM[1] = 0; boardCalYM[0]++; }
+  renderBoardCal();
+}
+function renderBoardCal() {
+  const [y, m] = boardCalYM;
+  document.getElementById("board-cal-month").textContent = `${y}年${m + 1}月`;
+  const first = new Date(y, m, 1);
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = todayStr();
+  let html = ["日","一","二","三","四","五","六"].map(w => `<div class="cal-wd">${w}</div>`).join("");
+  for (let i = 0; i < first.getDay(); i++) html += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const has = boardDates.has(key);
+    const clickable = key <= today;
+    html += `<button class="cal-day${has ? " has" : ""}${key === boardDate ? " sel" : ""}${key === today ? " today" : ""}"
+      ${clickable ? `onclick="boardDate='${key}';renderBoard();toggleBoardCal()"` : ""}>${d}<span class="cal-dot"></span></button>`;
+  }
+  document.getElementById("board-cal-grid").innerHTML = html;
+}
+
+async function postBoardNote() {
+  const input = document.getElementById("board-input");
+  const text = input.value.trim();
+  if (!text) return;
+  const r = await fetch(`/api/board/${todayStr()}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: identity, kind: "note", text }),
+  });
+  if (r.ok) {
+    input.value = "";
+    boardDate = todayStr();
+    loadBoardDates();
+    renderBoard();
+  }
+}
+async function postBoardSticker(emoji) {
+  const r = await fetch(`/api/board/${todayStr()}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: identity, kind: "sticker", emoji }),
+  });
+  if (r.ok) {
+    boardDate = todayStr();
+    loadBoardDates();
+    renderBoard();
+  }
+}
+async function postBoardPhoto(input) {
+  const file = input.files[0];
+  input.value = "";
+  if (!file) return;
+  const up = await fetch("/api/board/photo", { method: "POST", body: file });
+  if (!up.ok) { alert("照片上传失败"); return; }
+  const { id } = await up.json();
+  const cap = prompt("给照片配一句话？（可以留空）") || "";
+  const r = await fetch(`/api/board/${todayStr()}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: identity, kind: "photo", photoId: id, text: cap }),
+  });
+  if (r.ok) {
+    boardDate = todayStr();
+    loadBoardDates();
+    renderBoard();
+  }
+}
+async function delBoardItem(id) {
+  if (!confirm("取下来吗？")) return;
+  await fetch(`/api/board/${boardDate}/${id}`, { method: "DELETE" });
+  loadBoardDates();
+  renderBoard();
+}
+
 // ── Views ────────────────────────────────────────────────────────────────
 function switchView(name) {
   document.getElementById("view-shelf").style.display = name === "shelf" ? "flex" : "none";
@@ -1218,6 +1986,9 @@ function switchView(name) {
   document.getElementById("view-study").classList.toggle("show", name === "study");
   document.getElementById("view-activity").classList.toggle("show", name === "activity");
   document.getElementById("view-recall").classList.toggle("show", name === "recall");
+  document.getElementById("view-board").classList.toggle("show", name === "board");
+  document.getElementById("view-album").classList.toggle("show", name === "album");
+  document.getElementById("view-receipt").classList.toggle("show", name === "receipt");
   document.getElementById("view-memory").style.display = name === "memory" ? "block" : "none";
   document.getElementById("view-soon").classList.remove("show");
   document.getElementById("bottom-bar").style.display =
@@ -1227,11 +1998,14 @@ function switchView(name) {
   document.getElementById("bb-tsnotes").classList.toggle("active", name === "tsnotes");
   // 视图状态写进 URL hash，刷新后停在原页面（reader 由 openBook 单独写 #read/<id>）
   if (name !== "reader") history.replaceState(null, "", "#" + name);
-  document.getElementById("nav-books").classList.toggle("active", !["study","memory","activity","recall"].includes(name));
+  document.getElementById("nav-books").classList.toggle("active", !["study","memory","activity","recall","board","album","receipt"].includes(name));
+  document.getElementById("nav-receipt").classList.toggle("active", name === "receipt");
   document.getElementById("nav-study").classList.toggle("active", name === "study");
   document.getElementById("nav-memory").classList.toggle("active", name === "memory");
   document.getElementById("nav-activity").classList.toggle("active", name === "activity");
   document.getElementById("nav-recall").classList.toggle("active", name === "recall");
+  document.getElementById("nav-board").classList.toggle("active", name === "board");
+  document.getElementById("nav-album").classList.toggle("active", name === "album");
   if (window.innerWidth <= 768) closeAll();
 }
 function showShelf() {
@@ -2005,13 +2779,287 @@ function clawdPoke() {
 })();
 clawdDraw(clawdState);
 
+// ── 小票 ─────────────────────────────────────────────────────────────────
+let rcState = null;
+let rcTimer = null;
+
+function showReceipt() {
+  switchView("receipt");
+  document.getElementById("mobile-title").textContent = "小票";
+  loadReceipt();
+  clearInterval(rcTimer);
+  rcTimer = setInterval(() => {
+    if (document.getElementById("view-receipt").classList.contains("show")) rcChrome();
+    else clearInterval(rcTimer);
+  }, 30000);
+}
+
+async function loadReceipt() {
+  try {
+    rcState = await (await fetch("/api/receipt")).json();
+    rcRender();
+  } catch (e) { console.error(e); }
+}
+
+function rcBadgeTime(ts) {
+  const d = new Date(ts), n = new Date();
+  const hh = String(d.getHours()).padStart(2, "0"), mm = String(d.getMinutes()).padStart(2, "0");
+  return d.toDateString() === n.toDateString() ? `${hh}:${mm}`
+    : `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${hh}:${mm}`;
+}
+
+function rcRow(it) {
+  const outer = document.createElement("div");
+  outer.className = "rci-outer";
+  const row = document.createElement("div");
+  row.className = "rci" + (it.done ? " done" : "") + (it.status === "submitted" ? " submitted" : "");
+  const check = document.createElement("button");
+  check.className = "rci-check";
+  check.onclick = () => rcToggle(it);
+  row.appendChild(check);
+  if (it.trigger_at) {
+    const t = document.createElement("span");
+    t.className = "rci-trigger"; t.textContent = rcBadgeTime(it.trigger_at);
+    row.appendChild(t);
+  }
+  const body = document.createElement("div");
+  body.className = "rci-body"; body.textContent = it.body;
+  row.appendChild(body);
+  if (it.trigger_at && it.trigger_at <= Date.now() && !it.done) {
+    const bang = document.createElement("span");
+    bang.className = "rci-bang"; bang.textContent = "!";
+    row.appendChild(bang);
+  }
+  if (it.points > 0) {
+    const p = document.createElement("span");
+    p.className = "rci-pts"; p.textContent = "+" + it.points;
+    row.appendChild(p);
+  }
+  if (it.created_by === "ting_shu") {
+    const by = document.createElement("span");
+    by.className = "rci-by"; by.textContent = "听澍";
+    row.appendChild(by);
+  }
+  const del = document.createElement("button");
+  del.className = "rci-del";
+  del.onclick = () => rcDel(it);
+  row.appendChild(del);
+  outer.appendChild(row);
+  if (it.status === "submitted") {
+    const n = document.createElement("div");
+    n.className = "rci-note";
+    const nPhotos = (it.photos || []).length;
+    n.textContent = "已提交" + (nPhotos ? `（附${nPhotos}张照片）` : "") + "，等听澍确认…";
+    outer.appendChild(n);
+  } else if (it.status === "rejected") {
+    const n = document.createElement("div");
+    n.className = "rci-note";
+    n.textContent = "被打回" + (it.review_note ? "：" + it.review_note : "，再试一次");
+    outer.appendChild(n);
+  }
+  return outer;
+}
+
+function rcRender() {
+  if (!rcState) return;
+  const list = document.getElementById("rc-list");
+  list.innerHTML = "";
+  const t = Date.now();
+  const overdue = rcState.items.filter(x => x.trigger_at && x.trigger_at <= t && !x.done);
+  const rest = rcState.items.filter(x => !(x.trigger_at && x.trigger_at <= t && !x.done));
+  [...overdue, ...rest].forEach(it => list.appendChild(rcRow(it)));
+
+  // 小卖部
+  const shop = document.getElementById("rc-shop");
+  const rewards = (rcState.rewards || []).filter(r => !r.archived);
+  if (rewards.length) {
+    shop.innerHTML = "";
+    for (const r of rewards) {
+      const div = document.createElement("div");
+      div.className = "rc-shop-item";
+      const name = document.createElement("div");
+      name.className = "rc-shop-name";
+      name.textContent = r.name;
+      if (r.note) {
+        const note = document.createElement("div");
+        note.className = "rc-shop-note"; note.textContent = r.note;
+        name.appendChild(note);
+      }
+      const cost = document.createElement("span");
+      cost.className = "rc-shop-cost"; cost.textContent = r.cost + "分";
+      const btn = document.createElement("button");
+      btn.className = "rc-shop-btn"; btn.textContent = "兑换";
+      btn.disabled = rcState.balance < r.cost;
+      btn.onclick = () => rcRedeem(r);
+      div.append(name, cost, btn);
+      shop.appendChild(div);
+    }
+  } else {
+    shop.innerHTML = '<div class="rc-row faded"><span>货架还空着</span><span>听澍会上货</span></div>';
+  }
+
+  // 待兑现
+  const redeemed = document.getElementById("rc-redeemed");
+  const pendingRedeem = (rcState.redemptions || []).filter(x => !x.fulfilled).slice(0, 5);
+  redeemed.innerHTML = pendingRedeem.map(x =>
+    `<div class="rc-row faded"><span>🎫 ${x.name}</span><span>待兑现</span></div>`).join("");
+
+  rcChrome();
+}
+
+function rcChrome() {
+  if (!rcState) return;
+  const d = new Date();
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+  const wd = ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set("rc-date", `${y} / ${m} / ${day} · ${wd}`);
+  set("rc-now", `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`);
+  const items = rcState.items;
+  const total = items.length, done = items.filter(x => x.done).length;
+  set("rc-serial", `#${String(y).slice(2)}-${m}-${day}-${String(total).padStart(3,"0")}`);
+  set("rc-total-label", String(total));
+  set("rc-subtotal", `${total} 项`);
+  set("rc-done", `${done} 项`);
+  set("rc-undone", `${total - done} 项`);
+  const pct = total ? done / total : 0, w = 18, filled = Math.round(pct * w);
+  set("rc-progress-bar", "█".repeat(filled) + "░".repeat(w - filled));
+  set("rc-progress-pct", `${Math.round(pct * 100)}%`);
+  const minsLeft = (24 - d.getHours()) * 60 - d.getMinutes();
+  set("rc-midnight", `${String(Math.floor(minsLeft/60)).padStart(2,"0")}:${String(minsLeft%60).padStart(2,"0")} 后`);
+  set("rc-balance", `${rcState.balance} 分`);
+  set("rc-streak", `${rcState.streak.current} 天（最佳 ${rcState.streak.best}）`);
+  set("rc-pending-review", `${items.filter(x => x.status === "submitted").length} 项`);
+  const box = document.getElementById("rc-barcode");
+  if (box && !box.dataset.built) {
+    const seed = [1,2,1,3,1,2,2,1,3,1,1,2,1,3,2,1,1,2,1,3,1,2,2,1,3,2,1,1,2,1,3,1,1,2,1,2];
+    box.innerHTML = seed.map((wpx,i) => `<i style="width:${wpx}px;height:${i%5===0?38:32}px"></i>`).join("");
+    box.dataset.built = "1";
+  }
+  set("rc-barcode-serial", `${String(y).slice(2)} ${m} ${day} ${String(total).padStart(3,"0")}`);
+}
+
+async function rcToggle(it) {
+  // 需要听澍确认的任务：打勾前先写证明（文字+照片弹层）
+  if (it.points > 0 && it.review === "ai" && !it.done && it.status !== "submitted") {
+    rcProofOpen(it);
+    return;
+  }
+  const r = await fetch(`/api/receipt/items/${it.id}/toggle`, { method: "POST" });
+  if (!r.ok) { alert((await r.json()).error || "出错了"); return; }
+  await loadReceipt();
+}
+
+// ── 提交证明弹层 ──
+let rcProofItem = null;
+let rcProofFiles = [];
+
+function rcProofOpen(it) {
+  rcProofItem = it;
+  rcProofFiles = [];
+  document.getElementById("rc-proof-title").textContent = `「${it.body}」 +${it.points}`;
+  document.getElementById("rc-proof-text").value = "";
+  document.getElementById("rc-proof-thumbs").innerHTML = "";
+  document.getElementById("rc-proof-modal").classList.add("show");
+}
+
+function rcProofClose() {
+  document.getElementById("rc-proof-modal").classList.remove("show");
+  rcProofItem = null;
+  rcProofFiles = [];
+}
+
+function rcProofPick(input) {
+  const remaining = 4 - rcProofFiles.length;
+  for (const f of [...input.files].slice(0, remaining)) {
+    rcProofFiles.push(f);
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(f);
+    document.getElementById("rc-proof-thumbs").appendChild(img);
+  }
+  input.value = "";
+}
+
+// 压到最长边1280、JPEG 0.8——审核用不着原图，几MB变一两百KB，LA的链路才扛得住
+async function rcCompress(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 400 * 1024) return file;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.8));
+    return blob || file;
+  } catch { return file; }   // HEIC等解码失败就原样传
+}
+
+async function rcProofSubmit() {
+  if (!rcProofItem) return;
+  const it = rcProofItem;
+  const proof = document.getElementById("rc-proof-text").value.trim();
+  if (!proof && !rcProofFiles.length) { alert("写一句或者附张照片嘛"); return; }
+  const btn = document.getElementById("rc-proof-submit");
+  btn.disabled = true; btn.textContent = "提交中…";
+  try {
+    for (const f of rcProofFiles) {
+      const small = await rcCompress(f);
+      const r = await fetch(`/api/receipt/items/${it.id}/photo`, {
+        method: "POST", headers: { "Content-Type": "image/jpeg" }, body: small,
+      });
+      if (!r.ok) { alert((await r.json()).error || "照片传失败了"); return; }
+    }
+    const r = await fetch(`/api/receipt/items/${it.id}/toggle`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proof: proof || "（看照片）" }),
+    });
+    if (!r.ok) { alert((await r.json()).error || "出错了"); return; }
+    rcProofClose();
+    await loadReceipt();
+  } finally {
+    btn.disabled = false; btn.textContent = "提交";
+  }
+}
+
+async function rcAdd() {
+  const input = document.getElementById("rc-new-input");
+  const body = input.value.trim();
+  if (!body) return;
+  const fixed = document.getElementById("rc-new-fixed").checked;
+  await fetch("/api/receipt/items", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body, is_fixed: fixed, created_by: "xiao_nuo" }),
+  });
+  input.value = "";
+  await loadReceipt();
+}
+
+async function rcDel(it) {
+  if (!confirm(`删掉「${it.body}」？`)) return;
+  await fetch(`/api/receipt/items/${it.id}`, { method: "DELETE" });
+  await loadReceipt();
+}
+
+async function rcRedeem(r) {
+  if (!confirm(`用 ${r.cost} 分兑换「${r.name}」？`)) return;
+  const resp = await fetch(`/api/receipt/redeem/${r.id}`, { method: "POST" });
+  const data = await resp.json();
+  if (!resp.ok) { alert(data.error || "出错了"); return; }
+  await loadReceipt();
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────
 (function route() {
   const h = location.hash.slice(1);
   // 先同步切到目标视图，再异步填数据——避免书架闪现
+  // 默认主页是留言板
+  if (h === "" || h === "board") { showBoard(); loadBookList(); return; }
   if (h === "memory") { showMemory(); loadBookList(); return; }
   if (h === "study") { showStudy(); loadBookList(); return; }
   if (h === "activity") { showActivity(); loadBookList(); return; }
+  if (h === "album") { showAlbum(); loadBookList(); return; }
+  if (h === "receipt") { showReceipt(); loadBookList(); return; }
   if (h === "recall" || h.startsWith("recall/")) {
     const date = h.startsWith("recall/") ? h.slice(7) : null;
     showRecall().then(() => { if (date && calDates.has(date)) openRecallDay(date); });
@@ -2033,6 +3081,11 @@ clawdDraw(clawdState);
     }
   })();
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
 </script>
 </body>
 </html>

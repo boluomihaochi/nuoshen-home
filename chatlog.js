@@ -7,6 +7,30 @@ const TRANSCRIPT_DIR = "/root/.claude/projects/-root-tingshu";
 const CACHE_DIR = path.join(__dirname, "data", "chatlog-cache");
 if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
 
+const CHAT_INJECT_FILE = path.join(__dirname, "data", "chatlog-chat.json");
+
+function loadChatInjected() {
+  try { return JSON.parse(fs.readFileSync(CHAT_INJECT_FILE, "utf8")); } catch { return []; }
+}
+
+function appendFromChat(messages) {
+  const existing = loadChatInjected();
+  const seen = new Set(existing.map(m => `${m.who}|${Math.floor(m.ts / 1000)}|${String(m.text).slice(0, 80)}`));
+  let added = 0;
+  for (const m of messages) {
+    if (!m.ts || !m.who || !m.text) continue;
+    if (!["xn", "ts"].includes(m.who)) continue;
+    const k = `${m.who}|${Math.floor(Number(m.ts) / 1000)}|${String(m.text).slice(0, 80)}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    existing.push({ ts: Number(m.ts), who: m.who, text: String(m.text) });
+    added++;
+  }
+  existing.sort((a, b) => a.ts - b.ts);
+  fs.writeFileSync(CHAT_INJECT_FILE, JSON.stringify(existing, null, 2));
+  return added;
+}
+
 // 这些 user 消息不是小诺说的话（loop自主提示、harness提示、粘贴的续会话摘要等）
 const NOISE_PATTERNS = [
   /^你是听澍/, /^小诺(睡|去|回家)/, /自主时间/, /自己的时间/,
@@ -116,6 +140,7 @@ function loadAll() {
       all.push(...c.messages);
     } catch {}
   }
+  all.push(...loadChatInjected());
   all.sort((a, b) => a.ts - b.ts);
   // 相邻去重（同一条消息可能被两个会话都记录，比如 channel 注入）
   const out = [];
@@ -153,4 +178,4 @@ function search(q, limit = 50) {
   return hits;
 }
 
-module.exports = { byDate, search, dateKey };
+module.exports = { byDate, search, dateKey, appendFromChat };
